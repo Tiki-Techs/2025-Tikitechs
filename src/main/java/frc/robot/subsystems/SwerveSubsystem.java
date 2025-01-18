@@ -88,6 +88,61 @@ public class SwerveSubsystem extends SubsystemBase{
     });
   }
 
+
+
+
+
+
+
+
+
+  public Command driveCommand(DoubleSupplier translationX, DoubleSupplier translationY, DoubleSupplier angularRotationX)
+{
+return run(() -> {
+
+Translation2d scaledInputs = SwerveMath.scaleTranslation(new Translation2d(translationX.getAsDouble(),
+                                                     translationY.getAsDouble()), 0.8);
+
+// Make the robot move
+swerveDrive.driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(
+                                          scaledInputs.getX(), 
+                                          scaledInputs.getY(),
+                                          swerveDrive.getOdometryHeading().getRadians() + angularRotationX.getAsDouble()*3.14,
+                                          swerveDrive.getOdometryHeading().getRadians(),
+                                          swerveDrive.getMaximumChassisVelocity()));
+});
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   /**
    * Command to drive the robot using translative values and heading as angular velocity.
    *
@@ -96,18 +151,18 @@ public class SwerveSubsystem extends SubsystemBase{
    * @param angularRotationX Rotation of the robot to set
    * @return Drive command.
    */
-  public Command driveCommand(DoubleSupplier translationX, DoubleSupplier translationY, DoubleSupplier angularRotationX)
-  {
-    return run(() -> {
-      // Make the robot move
-      swerveDrive.drive(new Translation2d(translationX.getAsDouble() * swerveDrive.getMaximumChassisVelocity(),
-                                          translationY.getAsDouble() * swerveDrive.getMaximumChassisVelocity()),
-                        angularRotationX.getAsDouble() * swerveDrive.getMaximumChassisAngularVelocity(),
-                        true,
-                        false);
+  // public Command driveCommand(DoubleSupplier translationX, DoubleSupplier translationY, DoubleSupplier angularRotationX)
+  // {
+  //   return run(() -> {
+  //     // Make the robot move
+  //     swerveDrive.drive(new Translation2d(translationX.getAsDouble() * swerveDrive.getMaximumChassisVelocity(),
+  //                                         translationY.getAsDouble() * swerveDrive.getMaximumChassisVelocity()),
+  //                       angularRotationX.getAsDouble() * swerveDrive.getMaximumChassisAngularVelocity(),
+  //                       true,
+  //                       false);
     
-    });
-  }
+  //   });
+  // }
 
 Pose3d robotPose = new Pose3d();
 // Pose3d poseB = new Pose3d();

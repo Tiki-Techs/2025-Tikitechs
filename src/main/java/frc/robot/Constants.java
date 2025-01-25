@@ -15,6 +15,12 @@ import com.pathplanner.lib.config.RobotConfig;
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
+  //Elevator constants
+  public static class ElevatorConstants{
+    public static final int ELEVATORMOTOR1 = 0;
+    public static final int ELEVATORMOTOR2 = 0;   
+  //TODO get talon ids
+  }
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
   }

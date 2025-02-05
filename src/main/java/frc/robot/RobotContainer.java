@@ -6,11 +6,13 @@ package frc.robot;
 
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.Autos;
+import frc.robot.commands.ElevatorCommand;
 import frc.robot.commands.ExampleCommand;
+import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.ExampleSubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.Constants.ControllerConstants;
-
+import frc.robot.Constants.ElevatorConstants;
 
 import java.io.File;
 import java.util.function.DoubleSupplier;
@@ -46,16 +48,19 @@ public class RobotContainer {
   
 
   private final SwerveSubsystem drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),"swerve"));
+  private final ElevatorSubsystem elevator = new ElevatorSubsystem();
   private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
   private final SendableChooser<Command> autoChooser;
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController m_driverController = new CommandXboxController(OperatorConstants.kDriverControllerPort);
+  private final CommandXboxController m_elevatorController = new CommandXboxController(OperatorConstants.ELEVATOR_GAMEPAD_PORT);
 
-  /** The container for the robot. Contains subsystems, OI devices, and commands. */
+ /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     // Configure the trigger bindings
     configureBindings();
+    elevatorBindings();
     autoChooser = AutoBuilder.buildAutoChooser();
     // autoChooser.setDefaultOption("Mid Auto", AutoBuilder.buildAuto(middleAuto));
   }
@@ -92,9 +97,14 @@ public class RobotContainer {
 
   private void configureBindings() {
     drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
+  
     m_driverController.button(1).onTrue(new InstantCommand(drivebase::zeroGyro));
     // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed,
     // cancelling on release.
+  }
+
+  private void elevatorBindings() {
+    m_elevatorController.x().onTrue(new ElevatorCommand(ElevatorConstants.LEVEL_0));
   }
 
   //   // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed,
@@ -107,6 +117,8 @@ public class RobotContainer {
    *
    * @return the command to run in autonomous
    */
+
+   // providing auto path from pathplanner
   public Command getAutonomousCommand() {
  
     return new PathPlannerAuto("Test");

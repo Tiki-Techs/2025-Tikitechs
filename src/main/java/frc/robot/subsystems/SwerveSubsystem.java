@@ -37,6 +37,8 @@ import swervelib.parser.SwerveParser;
 import swervelib.telemetry.SwerveDriveTelemetry;
 import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
@@ -219,6 +221,11 @@ public void periodic(){
     SmartDashboard.putNumber("Odometry", swerveDrive.getOdometryHeading().getDegrees());
     SmartDashboard.putNumber("gyro test", swerveDrive.getGyroRotation3d().getAngle());
     m_field.setRobotPose(swerveDrive.getPose());
+    
     }
+
+
+
+
 
 }

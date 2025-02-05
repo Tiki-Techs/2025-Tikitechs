@@ -17,12 +17,14 @@ import com.pathplanner.lib.config.RobotConfig;
 public final class Constants {
   //Elevator constants
   public static class ElevatorConstants{
-    public static final int ELEVATORMOTOR1 = 0;
-    public static final int ELEVATORMOTOR2 = 0;   
-  //TODO get talon ids
+    public static final int ELEVATOR_MOTOR_1 = 0;
+    public static final int ELEVATOR_MOTOR_2 = 0;//todo: get talon ids
+    public static final int LEVEL_0 = 0;  
+  
   }
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
+    public static final int ELEVATOR_GAMEPAD_PORT = 1;
   }
   public static class ControllerConstants {
     public static final double LEFT_X_DEADBAND = 0.15;

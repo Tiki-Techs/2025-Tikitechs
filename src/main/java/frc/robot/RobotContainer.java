@@ -6,15 +6,18 @@ package frc.robot;
 
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.Autos;
-import frc.robot.commands.ElevatorCommand;
-import frc.robot.commands.ExampleCommand;
-import frc.robot.subsystems.ElevatorSubsystem;
-import frc.robot.subsystems.ExampleSubsystem;
+import frc.robot.subsystems.ArmTest;
+import frc.robot.subsystems.Controller;
+import frc.robot.subsystems.ElevatorTest;
+import frc.robot.subsystems.MotorRunnerElevManual;
+import frc.robot.subsystems.MotorRunnerArmManual;
 import frc.robot.subsystems.SwerveSubsystem;
+import frc.robot.subsystems.Vision;
 import frc.robot.Constants.ControllerConstants;
 import frc.robot.Constants.ElevatorConstants;
 
 import java.io.File;
+// import java.lang.ModuleLayer.Controller;
 import java.util.function.DoubleSupplier;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -45,22 +48,26 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   
-  
+  // private MotorRunner test1 = new MotorRunner();
+  // private MotorRunner2 test2 = new MotorRunner2();
 
   private final SwerveSubsystem drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),"swerve"));
-  private final ElevatorSubsystem elevator = new ElevatorSubsystem();
-  private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
+  // private final ElevatorSubsystem elevator = new ElevatorSubsystem();
+  public final Vision m_vision = new Vision();
   private final SendableChooser<Command> autoChooser;
+  // private final ArmTest m_arm = new ArmTest();
+  // private final ElevatorTest m_elevator = new ElevatorTest();
+  // private final Intake m_intake = new Intake();
+  // private final Controller m_controller = new Controller(m_elevator, m_arm, m_intake);
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
-  private final CommandXboxController m_driverController = new CommandXboxController(OperatorConstants.kDriverControllerPort);
-  private final CommandXboxController m_elevatorController = new CommandXboxController(OperatorConstants.ELEVATOR_GAMEPAD_PORT);
+  public static final CommandXboxController m_driverController = new CommandXboxController(OperatorConstants.kDriverControllerPort);
+  // private final CommandXboxController m_elevatorController = new CommandXboxController(OperatorConstants.ELEVATOR_GAMEPAD_PORT);
 
  /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     // Configure the trigger bindings
     configureBindings();
-    elevatorBindings();
     autoChooser = AutoBuilder.buildAutoChooser();
     // autoChooser.setDefaultOption("Mid Auto", AutoBuilder.buildAuto(middleAuto));
   }
@@ -84,7 +91,7 @@ public class RobotContainer {
     //     () -> MathUtil.applyDeadband(-m_driverController.getLeftY(), ControllerConstants.LEFT_Y_DEADBAND),
     //     () -> 0,
     //     () -> MathUtil.applyDeadband(-m_driverController.getRightX(), ControllerConstants.RIGHT_X_DEADBAND));
-
+    Command autoAlign = drivebase.autoAlign();
   /**
    * Use this method to define your trigger->command mappings. Triggers can be created via the
    * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary
@@ -97,15 +104,15 @@ public class RobotContainer {
 
   private void configureBindings() {
     drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
+    
+    // m_driverController.a().whileTrue(m_controller.mY());
+    // m_driverController.b().whileTrue(m_controller.mB());
+    // m_driverController.x().whileTrue(m_controller.mZero());
+    // m_driverController.leftStick().whileTrue(m_controller.mL());
   
-    m_driverController.button(1).onTrue(new InstantCommand(drivebase::zeroGyro));
-    // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed,
-    // cancelling on release.
+    m_driverController.x().whileTrue(drivebase.AlignTest());
   }
 
-  private void elevatorBindings() {
-    m_elevatorController.x().onTrue(new ElevatorCommand(ElevatorConstants.LEVEL_0));
-  }
 
   //   // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed,
   //   // cancelling on release.
@@ -125,7 +132,8 @@ public class RobotContainer {
   }
 
   public void periodic(){
-    SmartDashboard.putData("Auto Chooser", autoChooser);
+    // SmartDashboard.putData("Auto Chooser", autoChooser);
+
   }
 
 }

@@ -4,6 +4,9 @@
 
 package frc.robot;
 
+import java.util.Arrays;
+import java.util.List;
+
 import com.pathplanner.lib.config.RobotConfig;
 
 /**
@@ -18,7 +21,7 @@ public final class Constants {
   //Elevator constants
   public static class ElevatorConstants{
     public static final int ELEVATOR_MOTOR_1 = 0;
-    public static final int ELEVATOR_MOTOR_2 = 0;//todo: get talon ids
+    public static final int ELEVATOR_MOTOR_2 = 0;// get talon ids
     public static final int LEVEL_0 = 0;  
   
   }

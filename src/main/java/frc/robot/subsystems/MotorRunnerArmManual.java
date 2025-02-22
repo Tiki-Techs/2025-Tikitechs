@@ -31,38 +31,6 @@ public class MotorRunnerArmManual extends SubsystemBase {
         // m_Leader.setPosition(0);
         // m_Leader.set(0.5);
     }
-// 
-    // public double getEncoderValue(){
-    //     return encoderBR.get();
-    // }
-
-    public Command motorStartTalonCommand(double speed) {
-
-        return new RunCommand(
-                () -> {
-                    // m_Leader.set(speed);
-                }, this);
-
-    }
-
-    public Command motorStartTalonCommand(boolean test) {
-
-        return new RunCommand(
-                () -> {
-                    // talonFX.setVoltage(1);
-                }, this);
-
-    }
-
-
-public Command motorStopTalonCommand (){
-
-return new RunCommand(
-    () -> {
-    // talonFX.set(0);
-    // talonFX2.set(0);
-    }, this);    
-}
 
 @Override
 public void periodic(){

@@ -33,7 +33,7 @@ public class Vision extends SubsystemBase {
     public static int targetV;
     public static boolean centered;
 
-      /// 
+      /// a thing to select between bothvisions, if seen on both, pick closer
     public void periodic() {
         targetV = (int) table.getEntry("tv").getInteger(0);
         SmartDashboard.putNumber("targetV", targetV);

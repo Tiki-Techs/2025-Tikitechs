@@ -1,4 +1,3 @@
-// add second encoder logic later
 
 package frc.robot.subsystems;
 
@@ -13,14 +12,14 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ControllerConstants;
 import frc.robot.RobotContainer;
 
-public class ElevatorTest extends SubsystemBase{
+public class Arm extends SubsystemBase{
     public TalonFX m_Leader = new TalonFX(12);
     public TalonFX m_Follower = new TalonFX(11);
     public Follower follower = new Follower(12, false);
-    // DigitalInput lowerLimitSwitch = new DigitalInput(0);
-    // DigitalInput upperLimitSwitch = new DigitalInput(1);
-    public double canDown;
-    public double canUp;
+    DigitalInput rightLimitSwitch = new DigitalInput(2);
+    DigitalInput leftLimitSwitch = new DigitalInput(3);
+    public double canLeft;
+    public double canRight;
     public PIDController pid = new PIDController(0.2, 0, 0);
 
     public double encoderValue;
@@ -42,7 +41,7 @@ public class ElevatorTest extends SubsystemBase{
     public double tol = 3;
     public double speed;
 
-    public ElevatorTest(){
+    public Arm(){
         // m_Follower.setControl(follower);
         setpoint = getRotation();
     }
@@ -55,14 +54,6 @@ public class ElevatorTest extends SubsystemBase{
         return m_Leader.getPosition().getValueAsDouble();
     }
 
-    // public boolean getLimitSwitchTop(){
-    //     return upperLimitSwitch.get();
-    // }
-
-    // public boolean getLimitSwitchBottom(){
-    //     return lowerLimitSwitch.get();
-    // }
-
     public void setpoint(double setpoint){
         this.setpoint = setpoint;
     }
@@ -71,23 +62,41 @@ public class ElevatorTest extends SubsystemBase{
         this.tryRumble = rumble;
     }
 
-    public void manual (double speed){
-        m_Leader.set(speed);
-        setpoint = encoderValue;
-    }
-
-    public void setManual(boolean manual){
-        this.manual = manual;
-    }
-
     @Override
-    public void periodic(){
+    public void periodic(){ // Needs implementation: All of manual control, including limit switch logic. Should change limit switch logic for both, use if, else, limit, set.
         encoderValue = getRotation();
+        // If upper limit switch is not hit, canDown is 1. If lower is not hit, canUp is 1. Add logic to set encoders to x when limit is hit.
+        if (leftLimitSwitch.get()){
+            canLeft = 0;
+        }
+        else {
+            canLeft = 1;
+        }
+        if (rightLimitSwitch.get()){
+            canRight = 0;
+        }
+        else {
+            canRight = 1;
+        }
+
         double rightY = MathUtil.applyDeadband(RobotContainer.m_driverController.getRightY(), 0.15);
         if (rightY==0) {
             speed = pid.calculate(encoderValue, setpoint);
-            m_Leader.set(pid.calculate(encoderValue, setpoint));
+            // Prevents movement if limit switch is hit.
+            if (speed>0){
+                speed *= canRight;
+            }
+            else {
+                speed*=canLeft;
+            }
+            // Sets speed.
+            m_Leader.set(speed);
         }
+        else if (!Controller.manual) {
+            m_Leader.set(rightY);
+        }
+        
+        // Rumble logic.
         if (tryRumble){
             if (MathUtil.applyDeadband(encoderValue-setpoint, tol) == 0){
                 readyRumble = true;
@@ -96,27 +105,11 @@ public class ElevatorTest extends SubsystemBase{
                 readyRumble = false;
             }
         }
-        SmartDashboard.putBoolean("rumble true", readyRumble);
-        SmartDashboard.putBoolean("rumble try", tryRumble);
-        SmartDashboard.putNumber("motor speed", speed);
-        SmartDashboard.putNumber("Calc", MathUtil.applyDeadband(encoderValue-setpoint, tol));
-        // if (getLimitSwitchBottom()){
-        //     canDown = 0;
-        // }
-        // else {
-        //     canDown = 1;
-        // }
-        // if (getLimitSwitchTop()){
-        //     canUp = 0;
-        // }
-        // else {
-        //     canUp = 1;
-        // }
 
-        SmartDashboard.putNumber("True encoder value", encoderValue);
-        SmartDashboard.putNumber("True setpoint elev", setpoint);
-
-        // SmartDashboard.putBoolean("top limit", getLimitSwitchTop());
-        // SmartDashboard.putBoolean("bottom limit", getLimitSwitchBottom());
+        SmartDashboard.putNumber("Arm motor speed", speed);
+        SmartDashboard.putNumber("CanUp", canRight);
+        SmartDashboard.putNumber("CanDown", canLeft);
+        SmartDashboard.putNumber("Arm True encoder value", encoderValue);
+        SmartDashboard.putNumber("Arm True setpoint elev", setpoint);
     }
 }

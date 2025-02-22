@@ -10,16 +10,16 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.RobotContainer;
 // import frc.robot.subsystems.ArmTest;
 // import frc.robot.subsystems.Intake;
-import frc.robot.subsystems.ElevatorTest;
+import frc.robot.subsystems.Elevator;
 
 public class Controller extends SubsystemBase{
-    public ElevatorTest elevator;
-    public ArmTest arm;
+    public Elevator elevator;
+    public Arm arm;
     public Intake intake;
     // public Intake intake;
-    public boolean manual = true;
+    public static boolean manual = true;
 
-    public Controller (ElevatorTest elevator, ArmTest arm, Intake intake) {
+    public Controller (Elevator elevator, Arm arm, Intake intake) {
         this.elevator = elevator;
         this.arm = arm;
         this.intake = intake;
@@ -140,6 +140,67 @@ public class Controller extends SubsystemBase{
                 }, this);
 
     }
+
+    public Command individualTest(){
+        return new InstantCommand(
+                () -> {
+                    // arm.setpoint(arm.l4);
+                    elevator.setpoint(elevator.l4);
+                    rumble(true);
+                }, this);
+
+    }
+
+    
+    public Command individualTest2(){
+        return new InstantCommand(
+                () -> {
+                    // arm.setpoint(arm.l4);
+                    elevator.setpoint(elevator.l3);
+                    rumble(true);
+                }, this);
+
+    }
+
+    public Command togetherTest(){
+        return new InstantCommand(
+                () -> {
+                    arm.setpoint(arm.l4);
+                    elevator.setpoint(elevator.l4);
+                    rumble(true);
+                }, this);
+
+    }
+
+    public Command togetherTest2(){
+        return new InstantCommand(
+                () -> {
+                    arm.setpoint(arm.l4);
+                    elevator.setpoint(elevator.l4);
+                    rumble(true);
+                }, this);
+
+    }
+
+    public Command rumbleOff(){
+        return new InstantCommand(
+                () -> {
+                    rumble(false);
+                }, this);
+
+    }
+
+    
+    public Command intake(){
+        return new InstantCommand(
+                () -> {
+                    // uintake code
+                    rumble(false);
+                }, this);
+
+    }
+
+
     // public Command mPOVD(){
     //     return new InstantCommand(
     //             () -> {
@@ -194,23 +255,6 @@ public class Controller extends SubsystemBase{
 
     }
 
-    public Command mR(){
-    
-        return new InstantCommand(
-                () -> {
-                    if (manual) {
-                        elevator.setManual(true);
-                        elevator.manual(RobotContainer.m_driverController.getRightY()); // add deadband
-                    }
-                    else {
-                        // arm.setManual(true);
-                        // arm.manual(RobotContainer.m_driverController.getRightY());
-                    }
-                    rumble(false);
-                }, this);
-
-    }
-    
     public Command mLB () {
         return new InstantCommand(
             () -> {
@@ -251,6 +295,11 @@ public class Controller extends SubsystemBase{
         }
         else {
             RobotContainer.m_driverController.setRumble(RumbleType.kBothRumble, 0); // figure out rumble = false
+        }    
+        if ((MathUtil.applyDeadband(RobotContainer.m_driverController.getLeftX(), 0.15) != 0) || 
+        (MathUtil.applyDeadband(RobotContainer.m_driverController.getLeftY(), 0.15) != 0)){
+            elevator.setpoint(elevator.neutral);
+            arm.setpoint(arm.neutral);
         }
     }
 }

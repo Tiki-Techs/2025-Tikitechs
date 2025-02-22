@@ -19,51 +19,13 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public class MotorRunnerElevManual extends SubsystemBase {
     
     public TalonFX m_Leader = new TalonFX(10);
-    // public SparkMax test = new SparkMax(10, null)
     public TalonFX m_follower = new TalonFX(9);
     public Follower follower = new Follower(10, false);
     
-    // public TalonFX m_Follower = new TalonFX(0);
-    // public Follower follower = new Follower(12, false);
-
     public MotorRunnerElevManual(){
         m_follower.setControl(follower);
-        // m_Leader.setPosition(0);
-        // m_Leader.set(0.5);
     }
-// 
-    // public double getEncoderValue(){
-    //     return encoderBR.get();
-    // }
-
-    public Command motorStartTalonCommand(double speed) {
-
-        return new RunCommand(
-                () -> {
-                    // m_Leader.set(speed);
-                }, this);
-
-    }
-
-    public Command motorStartTalonCommand(boolean test) {
-
-        return new RunCommand(
-                () -> {
-                    // talonFX.setVoltage(1);
-                }, this);
-
-    }
-
-
-public Command motorStopTalonCommand (){
-
-return new RunCommand(
-    () -> {
-    // talonFX.set(0);
-    // talonFX2.set(0);
-    }, this);    
-}
-
+    
 @Override
 public void periodic(){
     if (MathUtil.applyDeadband(RobotContainer.m_driverController.getLeftY(), 0.15) != 0){

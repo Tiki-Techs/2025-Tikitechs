@@ -25,14 +25,6 @@ public class Intake extends SubsystemBase{
     public Intake(){
     }
 
-    // public boolean getLimitSwitchTop(){
-    //     return upperLimitSwitch.get();
-    // }
-
-    // public boolean getLimitSwitchBottom(){
-    //     return lowerLimitSwitch.get();
-    // }
-
     public void setSpeed(double speed){
         m_Leader.set(speed);
         this.speed = speed;

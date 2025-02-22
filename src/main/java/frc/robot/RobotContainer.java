@@ -9,6 +9,7 @@ import frc.robot.commands.Autos;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Controller;
 import frc.robot.subsystems.Elevator;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.MotorRunnerElevManual;
 import frc.robot.subsystems.MotorRunnerArmManual;
 import frc.robot.subsystems.SwerveSubsystem;
@@ -17,7 +18,7 @@ import frc.robot.Constants.ControllerConstants;
 import frc.robot.Constants.ElevatorConstants;
 
 import java.io.File;
-// import java.lang.ModuleLayer.Controller;
+
 import java.util.function.DoubleSupplier;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -48,20 +49,18 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   
-  // private MotorRunner test1 = new MotorRunner();
-  // private MotorRunner2 test2 = new MotorRunner2();
-
   private final SwerveSubsystem drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),"swerve"));
   // private final ElevatorSubsystem elevator = new ElevatorSubsystem();
   public final Vision m_vision = new Vision();
   private final SendableChooser<Command> autoChooser;
-  // private final ArmTest m_arm = new ArmTest();
-  // private final ElevatorTest m_elevator = new ElevatorTest();
-  // private final Intake m_intake = new Intake();
-  // private final Controller m_controller = new Controller(m_elevator, m_arm, m_intake);
+  private final Arm m_arm = new Arm();
+  private final Elevator m_elevator = new Elevator();
+  private final Intake m_intake = new Intake();
+  private final Controller m_controller = new Controller(m_elevator, m_arm, m_intake);
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
-  public static final CommandXboxController m_driverController = new CommandXboxController(OperatorConstants.kDriverControllerPort);
+  public static final CommandXboxController m_driverController = new CommandXboxController(OperatorConstants.kDriverControllerPort); 
+  public static final CommandXboxController m_mechController = new CommandXboxController(1);
   // private final CommandXboxController m_elevatorController = new CommandXboxController(OperatorConstants.ELEVATOR_GAMEPAD_PORT);
 
  /** The container for the robot. Contains subsystems, OI devices, and commands. */

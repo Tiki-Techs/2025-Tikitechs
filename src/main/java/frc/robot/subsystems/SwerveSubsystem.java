@@ -153,11 +153,15 @@ public class SwerveSubsystem extends SubsystemBase{
     });
   }
 
-
-
-
-
-
+  public Command zeroDrive()
+{
+return run(() -> {
+swerveDrive.driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(0, 0,
+                                          swerveDrive.getOdometryHeading().getRadians(),
+                                          swerveDrive.getOdometryHeading().getRadians(),
+                                          swerveDrive.getMaximumChassisVelocity()));
+});
+}
 
 
 

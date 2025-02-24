@@ -50,13 +50,15 @@ public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   
   private final SwerveSubsystem drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),"swerve"));
-  // private final ElevatorSubsystem elevator = new ElevatorSubsystem();
   public final Vision m_vision = new Vision();
   private final SendableChooser<Command> autoChooser;
-  private final Arm m_arm = new Arm();
-  private final Elevator m_elevator = new Elevator();
-  private final Intake m_intake = new Intake();
-  private final Controller m_controller = new Controller(m_elevator, m_arm, m_intake);
+  // private final Arm m_arm = new Arm();
+  // private final Elevator m_elevator = new Elevator();
+  public final MotorRunnerArmManual test2 = new MotorRunnerArmManual();
+  public final MotorRunnerElevManual test1 = new MotorRunnerElevManual();
+  // private final Elevator m_elevator = new Elevator();
+  // private final Intake m_intake = new Intake();
+  // private final Controller m_controller = new Controller(m_elevator, m_arm, m_intake);
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   public static final CommandXboxController m_driverController = new CommandXboxController(OperatorConstants.kDriverControllerPort); 
@@ -71,7 +73,7 @@ public class RobotContainer {
     // autoChooser.setDefaultOption("Mid Auto", AutoBuilder.buildAuto(middleAuto));
   }
 
-  Command driveFieldOrientedDirectAngle = drivebase.driveCommand(
+  Command driveFieldOrientedDirectAngle = drivebase.driveCommandF(
         () -> MathUtil.applyDeadband(m_driverController.getLeftY(), ControllerConstants.LEFT_Y_DEADBAND),
         () -> MathUtil.applyDeadband(m_driverController.getLeftX(), ControllerConstants.LEFT_X_DEADBAND),
         () -> m_driverController.getRightX(),
@@ -82,10 +84,18 @@ public class RobotContainer {
     // controls are front-left positive
     // left stick controls translation
     // right stick controls the angular velocity of the robot
-    Command driveFieldOrientedAnglularVelocity = drivebase.driveCommand(
+    Command driveFieldOrientedAnglularVelocity = drivebase.driveCommandF(
         () -> MathUtil.applyDeadband(-m_driverController.getLeftY(), ControllerConstants.LEFT_Y_DEADBAND),
         () -> MathUtil.applyDeadband(-m_driverController.getLeftX(), ControllerConstants.LEFT_X_DEADBAND),
         () -> MathUtil.applyDeadband(-m_driverController.getRightX(), ControllerConstants.RIGHT_X_DEADBAND));
+        
+    Command robotOrientedAngularVelocity = drivebase.driveCommandR(
+      () -> MathUtil.applyDeadband(-m_driverController.getLeftY(), ControllerConstants.LEFT_Y_DEADBAND),
+      () -> MathUtil.applyDeadband(-m_driverController.getLeftX(), ControllerConstants.LEFT_X_DEADBAND),
+      () -> MathUtil.applyDeadband(-m_driverController.getRightX(), ControllerConstants.RIGHT_X_DEADBAND));
+        
+
+    Command zeroDrive = drivebase.zeroDrive();
     // Command driveFieldOrientedAnglularVelocity = drivebase.driveCommand(
     //     () -> MathUtil.applyDeadband(-m_driverController.getLeftY(), ControllerConstants.LEFT_Y_DEADBAND),
     //     () -> 0,
@@ -102,8 +112,12 @@ public class RobotContainer {
   //  */
 
   private void configureBindings() {
-    drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
-    
+    // drivebase.setDefaultCommand(autoAlign);
+    // m_driverController.a().whileTrue(autoAlign);
+    // drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
+    // m_driverController.a().onTrue(zeroDrive);
+    // m_driverController.b().onTrue(driveFieldOrientedAnglularVelocity);
+    // m_driverController.x().onTrue(robotOrientedAngularVelocity);
     // m_driverController.a().whileTrue(m_controller.mY());
     // m_driverController.b().whileTrue(m_controller.mB());
     // m_driverController.x().whileTrue(m_controller.mZero());

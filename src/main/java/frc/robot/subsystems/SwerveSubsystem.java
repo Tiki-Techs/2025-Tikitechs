@@ -136,7 +136,7 @@ public class SwerveSubsystem extends SubsystemBase{
    * @return Drive command.
    */
   
-  public Command driveCommand(DoubleSupplier translationX, DoubleSupplier translationY, DoubleSupplier headingX,
+  public Command driveCommandF(DoubleSupplier translationX, DoubleSupplier translationY, DoubleSupplier headingX,
                               DoubleSupplier headingY)
   {
     return run(() -> {
@@ -165,24 +165,26 @@ swerveDrive.driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(0, 0
 
 
 
-//   public Command driveCommand(DoubleSupplier translationX, DoubleSupplier translationY, DoubleSupplier angularRotationX)
-// {
-// return run(() -> {
+  public Command driveCommandF(DoubleSupplier translationX, DoubleSupplier translationY, DoubleSupplier angularRotationX)
+{
+return run(() -> {
 
-// Translation2d scaledInputs = SwerveMath.scaleTranslation(new Translation2d(translationX.getAsDouble(),
-//                                                      translationY.getAsDouble()), 0.8);
+Translation2d scaledInputs = SwerveMath.scaleTranslation(new Translation2d(translationX.getAsDouble(),
+                                                     translationY.getAsDouble()), 0.8);
 
-// // Make the robot move
-// swerveDrive.driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(
-//                                           scaledInputs.getX(), 
-//                                           scaledInputs.getY(),
-//                                           swerveDrive.getOdometryHeading().getRadians() + angularRotationX.getAsDouble()*3.14,
-//                                           swerveDrive.getOdometryHeading().getRadians(),
-//                                           swerveDrive.getMaximumChassisVelocity()));
-// });
-// }
+// Make the robot move
+swerveDrive.driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(
+                                          scaledInputs.getX(), 
+                                          scaledInputs.getY(),
+                                          swerveDrive.getOdometryHeading().getRadians() + angularRotationX.getAsDouble()*3.14,
+                                          swerveDrive.getOdometryHeading().getRadians(),
+                                          swerveDrive.getMaximumChassisVelocity()));
+});
+}
 
-public Command driveCommand(DoubleSupplier translationX, DoubleSupplier translationY, DoubleSupplier angularRotationX)
+
+
+public Command driveCommandR(DoubleSupplier translationX, DoubleSupplier translationY, DoubleSupplier angularRotationX)
 {
 return run(() -> {
 
@@ -210,30 +212,21 @@ swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(
    * @param angularRotationX Rotation of the robot to set
    * @return Drive command.
    */
-  // public Command driveCommand(DoubleSupplier translationX, DoubleSupplier translationY, DoubleSupplier angularRotationX)
-  // {
-  //   return run(() -> {
-  //     // Make the robot move
-  //     swerveDrive.drive(new Translation2d(translationX.getAsDouble() * swerveDrive.getMaximumChassisVelocity(),
-  //                                         translationY.getAsDouble() * swerveDrive.getMaximumChassisVelocity()),
-  //                       angularRotationX.getAsDouble() * swerveDrive.getMaximumChassisAngularVelocity(),
-  //                       true,
-  //                       false);
-    
-  //   });
-  // }
 
   
   public Command autoAlign () {
       return run (() -> {
         if(MathUtil.applyDeadband(Vision.skew, 8) != 0 || MathUtil.applyDeadband(Vision.angleX, 7) != 0){
-          swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(0.2, 0, swerveDrive.getOdometryHeading().getRadians(), swerveDrive.getOdometryHeading().getRadians(), swerveDrive.getMaximumChassisVelocity()));
+          // swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(0.2, 0, swerveDrive.getOdometryHeading().getRadians(), swerveDrive.getOdometryHeading().getRadians(), swerveDrive.getMaximumChassisVelocity()));
+          SmartDashboard.putString("Align Test 1", "align");
         }
         else if (MathUtil.applyDeadband(Vision.distance-0.4, 0.05) != 0){
-          swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(0, 0, swerveDrive.getOdometryHeading().getRadians(), swerveDrive.getOdometryHeading().getRadians(), swerveDrive.getMaximumChassisVelocity()));
+          // swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(0, 0, swerveDrive.getOdometryHeading().getRadians(), swerveDrive.getOdometryHeading().getRadians(), swerveDrive.getMaximumChassisVelocity()));
+          SmartDashboard.putString("Align Test 1", "distance");
         }
         else {
-          swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(0, 0, swerveDrive.getOdometryHeading().getRadians(), swerveDrive.getOdometryHeading().getRadians(), swerveDrive.getMaximumChassisVelocity()));
+          // swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(0, 0, swerveDrive.getOdometryHeading().getRadians(), swerveDrive.getOdometryHeading().getRadians(), swerveDrive.getMaximumChassisVelocity()));
+          SmartDashboard.putString("Align Test 1", "good");
         }
       });
     }

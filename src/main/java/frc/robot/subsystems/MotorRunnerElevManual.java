@@ -28,9 +28,9 @@ public class MotorRunnerElevManual extends SubsystemBase {
     
 @Override
 public void periodic(){
-    if (MathUtil.applyDeadband(RobotContainer.m_driverController.getLeftY(), 0.15) != 0){
+    if (MathUtil.applyDeadband(RobotContainer.m_mechController.getLeftY(), 0.15) != 0){
                 // m_Leader.set(Math.signum(RobotContainer.m_driverController.getLeftY()));
-                m_Leader.set(RobotContainer.m_driverController.getLeftY());
+                m_Leader.set(RobotContainer.m_mechController.getLeftY());
             }
     else {
         m_Leader.set(0);

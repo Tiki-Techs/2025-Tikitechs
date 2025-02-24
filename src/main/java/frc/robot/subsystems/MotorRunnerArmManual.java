@@ -34,9 +34,9 @@ public class MotorRunnerArmManual extends SubsystemBase {
 
 @Override
 public void periodic(){
-    if (MathUtil.applyDeadband(RobotContainer.m_driverController.getRightY(), 0.15) != 0){
+    if (MathUtil.applyDeadband(RobotContainer.m_mechController.getRightY(), 0.15) != 0){
                 // m_Leader.set(Math.signum(RobotContainer.m_driverController.getLeftY()));
-                m_Leader.set(RobotContainer.m_driverController.getRightY());
+                m_Leader.set(RobotContainer.m_mechController.getRightY());
             }
     else {
         m_Leader.set(0);

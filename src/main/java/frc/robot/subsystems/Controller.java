@@ -287,7 +287,7 @@ public class Controller extends SubsystemBase{
     // REMOVE
 
     @Override
-    public void periodic (){
+    public void periodic (){ // add in stuff based on vision, too
         if (elevator.readyRumble){
             // RobotContainer.m_driverController.setRumble(RumbleType.kBothRumble, 1);
             RobotContainer.m_driverController.setRumble(RumbleType.kBothRumble, 1); // figure out rumble = false
@@ -296,10 +296,10 @@ public class Controller extends SubsystemBase{
         else {
             RobotContainer.m_driverController.setRumble(RumbleType.kBothRumble, 0); // figure out rumble = false
         }    
-        if ((MathUtil.applyDeadband(RobotContainer.m_driverController.getLeftX(), 0.15) != 0) || 
-        (MathUtil.applyDeadband(RobotContainer.m_driverController.getLeftY(), 0.15) != 0)){
-            elevator.setpoint(elevator.neutral);
-            arm.setpoint(arm.neutral);
-        }
+        // if ((MathUtil.applyDeadband(RobotContainer.m_driverController.getLeftX(), 0.15) != 0) || 
+        // (MathUtil.applyDeadband(RobotContainer.m_driverController.getLeftY(), 0.15) != 0)){
+        //     elevator.setpoint(elevator.neutral);
+        //     arm.setpoint(arm.neutral);
+        // }
     }
 }

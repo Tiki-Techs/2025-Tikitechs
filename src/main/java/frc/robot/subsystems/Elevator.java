@@ -22,7 +22,7 @@ public class Elevator extends SubsystemBase{
     DigitalInput upperLimitSwitch = new DigitalInput(3);
     public double canDown;
     public double canUp;
-    public PIDController pid = new PIDController(0.2, 0, 0);
+    public PIDController pid = new PIDController(0.08, 0, 0);
     public DutyCycleEncoder degEncoder = new DutyCycleEncoder(0);
 
 
@@ -39,9 +39,11 @@ public class Elevator extends SubsystemBase{
     public double l2;
     public double l3 = 200;
     public double l4 = 414;
+    public double test1 = 60;
+    public double test2 = 100;
 
-    public double testlim1 = 60;
-    public double testlim2 = -50;
+    public double testlim1 = 30;
+    public double testlim2 = 130;
 
     public double algaeLow;
     public double algaeHigh;
@@ -49,8 +51,8 @@ public class Elevator extends SubsystemBase{
     public double tol = 3;
     public double speed;
     public double deg;
-    public double top = -164;
-    public double bottom = -82.5;
+    public double top = 200;
+    public double bottom = 60;
     public double tol2 = 15;
     public double topE = 0;
     public double bottomE = 0;
@@ -79,24 +81,24 @@ public class Elevator extends SubsystemBase{
 
     @Override
     public void periodic(){ // Needs implementation: All of manual control, including limit switch logic. Should change limit switch logic for both, use if, else, limit, set.
-        encoderValue = getRotation();
+        encoderValue = -getRotation();
         deg = degEncoder.get();
         SmartDashboard.putNumber("throughbore elev", deg);
         // If upper limit switch is not hit, canDown is 1. If lower is not hit, canUp is 1. Add logic to set encoders to x when limit is hit.
-        if ((!lowerLimitSwitch.get()) || (encoderValue > bottom)){ // should not need the encoder value > bottom part in future
+        if ((!lowerLimitSwitch.get()) || (encoderValue < bottom)){ // should not need the encoder value > bottom part in future
             canDown = 0;
         }
         else {
             canDown = 1;
         }
-        if ((!lowerLimitSwitch.get()) || (encoderValue < top)){
+        if ((!lowerLimitSwitch.get()) || (encoderValue > top)){
             canUp = 0;
         }
         else {
             canUp = 1;
         }
 
-        double rightY = -MathUtil.applyDeadband(RobotContainer.m_mechController.getRightY(), 0.37);
+        double rightY = MathUtil.applyDeadband(RobotContainer.m_mechController.getRightY(), 0.37);
         if (rightY==0) {
             speed = pid.calculate(encoderValue, setpoint);
             // Prevents movement if limit switch is hit.
@@ -111,7 +113,7 @@ public class Elevator extends SubsystemBase{
         }
         // else if (Controller.manual) {
         else {
-            if ((MathUtil.applyDeadband(encoderValue-top, tol2) == 0) || (MathUtil.applyDeadband(encoderValue-bottom, tol2) == 0)){
+            if (((MathUtil.applyDeadband(encoderValue-top, tol2) == 0) || (MathUtil.applyDeadband(encoderValue-bottom, tol2) == 0))){
                 canDown *= 0.2;
                 canUp *= 0.2;
             }
@@ -139,5 +141,6 @@ public class Elevator extends SubsystemBase{
         SmartDashboard.putNumber("CanDown", canDown);
         SmartDashboard.putNumber("Elevator True encoder value", encoderValue);
         SmartDashboard.putNumber("Elevator True setpoint elev", setpoint);
+        SmartDashboard.putNumber("rightY", rightY);
     }
 }

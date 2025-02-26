@@ -52,12 +52,13 @@ public class RobotContainer {
   private final SwerveSubsystem drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),"swerve"));
   public final Vision m_vision = new Vision();
   private final SendableChooser<Command> autoChooser;
+  
   // private final Arm m_arm = new Arm();
-  // private final Elevator m_elevator = new Elevator();
-  public final MotorRunnerArmManual test2 = new MotorRunnerArmManual();
-  public final MotorRunnerElevManual test1 = new MotorRunnerElevManual();
-  // private final Elevator m_elevator = new Elevator();
+  // public final MotorRunnerArmManual test2 = new MotorRunnerArmManual();
+  // public final MotorRunnerElevManual test1 = new MotorRunnerElevManual();
+  private final Elevator m_elevator = new Elevator();
   // private final Intake m_intake = new Intake();
+  private final Controller m_controller = new Controller(m_elevator);
   // private final Controller m_controller = new Controller(m_elevator, m_arm, m_intake);
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
@@ -112,6 +113,9 @@ public class RobotContainer {
   //  */
 
   private void configureBindings() {
+    m_mechController.a().whileTrue(m_controller.togetherTest());
+    
+    m_mechController.b().whileTrue(m_controller.togetherTest2());
     // drivebase.setDefaultCommand(autoAlign);
     // m_driverController.a().whileTrue(autoAlign);
     // drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);

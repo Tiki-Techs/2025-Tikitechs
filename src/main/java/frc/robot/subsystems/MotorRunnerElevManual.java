@@ -14,6 +14,7 @@ import frc.robot.RobotContainer;
 import frc.robot.Constants.OperatorConstants;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.AnalogEncoder;
+import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class MotorRunnerElevManual extends SubsystemBase {
@@ -21,7 +22,9 @@ public class MotorRunnerElevManual extends SubsystemBase {
     public TalonFX m_Leader = new TalonFX(10);
     public TalonFX m_follower = new TalonFX(9);
     public Follower follower = new Follower(10, false);
-    
+    public DutyCycleEncoder degEncoder = new DutyCycleEncoder(0);
+
+
     public MotorRunnerElevManual(){
         m_follower.setControl(follower);
     }
@@ -35,10 +38,12 @@ public void periodic(){
     else {
         m_Leader.set(0);
     }
+    double e3 = degEncoder.get();
     double e1 = m_Leader.getPosition().getValueAsDouble();
     double e2 = m_follower.getPosition().getValueAsDouble();
     SmartDashboard.putNumber("e1", e1);
     SmartDashboard.putNumber("e2", e2);
+    SmartDashboard.putNumber("trueencodervalue", e3);
     // double value = m_Leader.getPosition().getValueAsDouble();
     // SmartDashboard.putNumber("Encoder Position", value);
     // SmartDashboard.putNumber("speed", m_Leader.get());

@@ -14,16 +14,19 @@ import frc.robot.subsystems.Elevator;
 
 public class Controller extends SubsystemBase{
     public Elevator elevator;
-    public Arm arm;
-    public Intake intake;
+    // public Arm arm;
+    // public Intake intake;
     // public Intake intake;
     public static boolean manual = true;
 
-    public Controller (Elevator elevator, Arm arm, Intake intake) {
+    // public Controller (Elevator elevator, Arm arm, Intake intake) {
+    //     this.elevator = elevator;
+    //     this.arm = arm;
+    //     this.intake = intake;
+
+    public Controller (Elevator elevator) {
         this.elevator = elevator;
-        this.arm = arm;
-        this.intake = intake;
-        
+    // }
         // REMOVE
         // var shooterMap = ShooterConstants.SHOOTER_MAP;
         // double[] distances = new double[shooterMap.size()];
@@ -87,7 +90,7 @@ public class Controller extends SubsystemBase{
     // }
 
     public void rumble(boolean rumble){
-        arm.tryRumble(rumble);
+        // arm.tryRumble(rumble);
         elevator.tryRumble(rumble);
     }
 
@@ -165,8 +168,8 @@ public class Controller extends SubsystemBase{
     public Command togetherTest(){
         return new InstantCommand(
                 () -> {
-                    arm.setpoint(arm.l4);
-                    elevator.setpoint(elevator.l4);
+                    // arm.setpoint(arm.l4);
+                    elevator.setpoint(elevator.test1);
                     rumble(true);
                 }, this);
 
@@ -175,8 +178,8 @@ public class Controller extends SubsystemBase{
     public Command togetherTest2(){
         return new InstantCommand(
                 () -> {
-                    arm.setpoint(arm.l4);
-                    elevator.setpoint(elevator.l4);
+                    // arm.setpoint(arm.l4);
+                    elevator.setpoint(elevator.test2);
                     rumble(true);
                 }, this);
 

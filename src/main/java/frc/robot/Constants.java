@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.pathplanner.lib.config.RobotConfig;
-import frc.robot.subsystems.Controller.State;
+// import frc.robot.subsystems.Controller.State;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -22,9 +22,9 @@ import frc.robot.subsystems.Controller.State;
  */
 public final class Constants {
   //Elevator constants
-  public static final List<Entry<Double, State>> SHOOTER_MAP = Arrays.asList(
-        Map.entry(0.0, new State(300, 20, 0.2)),
-        Map.entry(1.0, new State(100, -20, 0.2)));
+  // public static final List<Entry<Double, State>> SHOOTER_MAP = Arrays.asList(
+  //       Map.entry(0.0, new State(300, 20, 0.2)),
+  //       Map.entry(1.0, new State(100, -20, 0.2)));
   public static class ElevatorConstants{
     public static final int ELEVATOR_MOTOR_1 = 0;
     public static final int ELEVATOR_MOTOR_2 = 0;

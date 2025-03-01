@@ -18,37 +18,43 @@ import frc.robot.Constants.ControllerConstants;
 import frc.robot.RobotContainer;
 
 public class Intake extends SubsystemBase{
-    SparkFlex m_leader = new SparkFlex(13, MotorType.kBrushless);
-    SparkFlex m_Follower = new SparkFlex(14, MotorType.kBrushless);
+    public static TalonFX m_Leader = new TalonFX(13);
 
 
     public PIDController pid = new PIDController(0.2, 0, 0);
 
     public double motorValue;
     public double speed = 0;
+    // ADD THE LIMIT SWITCH FOR 4
 
     public Intake(){
         // m_leader.set(0.3);
     }
 
     public void setSpeed(double speed){
-        m_leader.set(speed);
+        m_Leader.set(speed);
         this.speed = speed;
     }
 
     @Override
     public void periodic(){
-        motorValue = m_leader.get();
-        SmartDashboard.putNumber("Intake Actual Speed", motorValue);
-        SmartDashboard.putNumber("Intake Set Speed", speed);
+        motorValue = m_Leader.get();
+        // SmartDashboard.putNumber("Intake Actual Speed", motorValue);
+        // SmartDashboard.putNumber("Intake Set Speed", speed);
         if (MathUtil.applyDeadband(RobotContainer.m_mechController.getRightTriggerAxis(), 0.15) != 0){
             // m_Leader.set(Math.signum(RobotContainer.m_driverController.getLeftY()));
-            m_leader.set(RobotContainer.m_mechController.getRightTriggerAxis());
+            m_Leader.set(RobotContainer.m_mechController.getRightTriggerAxis()*0.5);
+            // SmartDashboard.putNumber("right", RobotContainer.m_mechController.getRightTriggerAxis());
+        }
+        else if (MathUtil.applyDeadband(RobotContainer.m_mechController.getLeftTriggerAxis(), 0.15) != 0){
+            // m_Leader.set(Math.signum(RobotContainer.m_driverController.getLeftY()));
+            m_Leader.set(-RobotContainer.m_mechController.getLeftTriggerAxis()*0.5);
+            // SmartDashboard.putNumber("left", RobotContainer.m_mechController.getLeftTriggerAxis());
         }
         else {
-            m_leader.set(0);
+            m_Leader.set(0);
         }
-    
+    // SmartDashboard.putNumber("motor", motorValue);
     }
 
        

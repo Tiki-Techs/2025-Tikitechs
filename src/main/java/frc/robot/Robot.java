@@ -106,6 +106,6 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotInit(){
-    CameraServer.startAutomaticCapture("limelight", 3880); // id is what you set the camera
+    // CameraServer.startAutomaticCapture("limelight", 3880); // id is what you set the camera
   }
 }

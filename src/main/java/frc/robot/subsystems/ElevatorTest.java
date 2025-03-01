@@ -10,11 +10,10 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.lib.util.KeyboardAndMouse;
 import frc.robot.Constants.ControllerConstants;
 import frc.robot.RobotContainer;
 
-public class ElevatorTest extends SubsystemBase{
+public class ElevatorTest extends SubsystemBase {
     public TalonFX m_Leader = new TalonFX(12);
     public TalonFX m_Follower = new TalonFX(11);
     public Follower follower = new Follower(12, false);
@@ -43,76 +42,75 @@ public class ElevatorTest extends SubsystemBase{
     public double tol = 3;
     public double speed;
 
-    public ElevatorTest(){
+    public ElevatorTest() {
         // m_Follower.setControl(follower);
         setpoint = getRotation();
 
     }
 
-    public void setEncoder(double value){
+    public void setEncoder(double value) {
         m_Leader.set(value);
     }
 
-    public double getRotation(){
+    public double getRotation() {
         return m_Leader.getPosition().getValueAsDouble();
     }
 
     // public boolean getLimitSwitchTop(){
-    //     return upperLimitSwitch.get();
+    // return upperLimitSwitch.get();
     // }
 
     // public boolean getLimitSwitchBottom(){
-    //     return lowerLimitSwitch.get();
+    // return lowerLimitSwitch.get();
     // }
 
-    public void setpoint(double setpoint){
+    public void setpoint(double setpoint) {
         this.setpoint = setpoint;
     }
 
-    public void tryRumble(boolean rumble){
+    public void tryRumble(boolean rumble) {
         this.tryRumble = rumble;
     }
 
-    public void manual (double speed){
+    public void manual(double speed) {
         m_Leader.set(speed);
         setpoint = encoderValue;
     }
 
-    public void setManual(boolean manual){
+    public void setManual(boolean manual) {
         this.manual = manual;
     }
 
     @Override
-    public void periodic(){
+    public void periodic() {
         encoderValue = getRotation();
         double rightY = MathUtil.applyDeadband(RobotContainer.m_driverController.getRightY(), 0.15);
-        if (rightY==0) {
+        if (rightY == 0) {
             speed = pid.calculate(encoderValue, setpoint);
             m_Leader.set(pid.calculate(encoderValue, setpoint));
         }
-        if (tryRumble){
-            if (MathUtil.applyDeadband(encoderValue-setpoint, tol) == 0){
+        if (tryRumble) {
+            if (MathUtil.applyDeadband(encoderValue - setpoint, tol) == 0) {
                 readyRumble = true;
-            }
-            else {
+            } else {
                 readyRumble = false;
             }
         }
         SmartDashboard.putBoolean("rumble true", readyRumble);
         SmartDashboard.putBoolean("rumble try", tryRumble);
         SmartDashboard.putNumber("motor speed", speed);
-        SmartDashboard.putNumber("Calc", MathUtil.applyDeadband(encoderValue-setpoint, tol));
+        SmartDashboard.putNumber("Calc", MathUtil.applyDeadband(encoderValue - setpoint, tol));
         // if (getLimitSwitchBottom()){
-        //     canDown = 0;
+        // canDown = 0;
         // }
         // else {
-        //     canDown = 1;
+        // canDown = 1;
         // }
         // if (getLimitSwitchTop()){
-        //     canUp = 0;
+        // canUp = 0;
         // }
         // else {
-        //     canUp = 1;
+        // canUp = 1;
         // }
 
         SmartDashboard.putNumber("True encoder value", encoderValue);

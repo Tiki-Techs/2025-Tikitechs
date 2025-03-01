@@ -73,6 +73,7 @@ public class RobotContainer {
     configureBindings();
     autoChooser = AutoBuilder.buildAutoChooser();
     KeyboardAndMouse.getInstance().key("a").onTrue(new InstantCommand( () -> m_intake.setSpeed(1.0))); 
+
     // autoChooser.setDefaultOption("Mid Auto", AutoBuilder.buildAuto(middleAuto));
   }
 

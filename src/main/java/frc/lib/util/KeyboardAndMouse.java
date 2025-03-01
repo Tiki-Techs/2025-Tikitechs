@@ -13,7 +13,6 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  */
 public class KeyboardAndMouse {
 
-    private static KeyboardAndMouse keyboard = new KeyboardAndMouse();
     private double deltaX = 0;
     private double deltaY = 0;
     private double x = 0;
@@ -28,6 +27,7 @@ public class KeyboardAndMouse {
                     return;
                 }
                 this.keys.put(s, true);
+                System.out.println(s);
             });
         instance.addListener(instance.getTopic("/input/keyboardUp"),
             EnumSet.of(NetworkTableEvent.Kind.kValueRemote), (ev) -> {
@@ -38,10 +38,14 @@ public class KeyboardAndMouse {
                 this.keys.put(s, false);
             });
     }
+    private static KeyboardAndMouse keyboard = null;
 
-    public static KeyboardAndMouse getInstance() {
-        return keyboard;
+ public static KeyboardAndMouse getInstance() {
+     if(keyboard == null){
+keyboard = new  KeyboardAndMouse ();
     }
+return keyboard;
+ }
 
     private Map<String, Boolean> keys = new HashMap<>();
    
@@ -56,14 +60,8 @@ public class KeyboardAndMouse {
         });
     }
 
-    /**
-     *
-     * @param button mouse button (from javascript). Usually left click is 0, right click is 2.
-     * @return mousepress trigger
-     */
-    public Trigger mouse(int button) {
-        return key("mouse" + button);
-    }
+    
+
 
 
     }

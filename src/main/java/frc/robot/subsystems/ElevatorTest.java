@@ -10,6 +10,7 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.lib.util.KeyboardAndMouse;
 import frc.robot.Constants.ControllerConstants;
 import frc.robot.RobotContainer;
 
@@ -45,6 +46,7 @@ public class ElevatorTest extends SubsystemBase{
     public ElevatorTest(){
         // m_Follower.setControl(follower);
         setpoint = getRotation();
+
     }
 
     public void setEncoder(double value){

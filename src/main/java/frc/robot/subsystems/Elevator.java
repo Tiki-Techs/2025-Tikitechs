@@ -2,6 +2,7 @@
 
 package frc.robot.subsystems;
 
+import org.apache.commons.math3.analysis.interpolation.LinearInterpolator;
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 
@@ -21,16 +22,16 @@ import frc.robot.RobotContainer;
 
 
 public class Elevator extends SubsystemBase{
-    public TalonFX m_Leader = new TalonFX(10); // DO NOT RUN WITHOUT CHECING IDS
+    public TalonFX m_Leader = new TalonFX(10);
     public TalonFX m_Follower = new TalonFX(9);
     public Follower follower = new Follower(10, false);
-    DigitalInput lowerLimitSwitch = new DigitalInput(2);
-    DigitalInput upperLimitSwitch = new DigitalInput(3);
+    DigitalInput lowerLimitSwitch = new DigitalInput(3);
+    DigitalInput upperLimitSwitch = new DigitalInput(2);
     public double canDown;
     public double canUp;
-    public PIDController pid = new PIDController(0.08, 0, 0);
+    public PIDController pid = new PIDController(0.008, 0, 0);
     public DutyCycleEncoder degEncoder = new DutyCycleEncoder(0);
-    private final SplineInterpolator interpolator = new SplineInterpolator();
+    private final LinearInterpolator interpolator = new LinearInterpolator();
     private PolynomialSplineFunction m_elevInterpolator;
 
     public double encoderValue;
@@ -39,6 +40,10 @@ public class Elevator extends SubsystemBase{
     public boolean readyRumble;
     public double test1 = 60;
     public double test2 = 100;
+    public static double down = 140;
+    public static double down2;
+    public static boolean there = false;
+    public double up;
 
     public double tol = 3;
     public double tol2 = 3;
@@ -49,13 +54,9 @@ public class Elevator extends SubsystemBase{
     public Elevator(){
         m_Follower.setControl(follower);
         setpoint = getRotation();
-        double[] elev = Controller.elevSafety;
-        double[] arm = Controller.armSafety;
+        double[] elev = Controller.elevSafety2;
+        double[] arm = Controller.armSafety2;
         m_elevInterpolator = interpolator.interpolate(arm, elev);
-    }
-
-    public void setEncoder(double value){
-        m_Leader.set(value);
     }
 
     public double getRotation(){
@@ -63,7 +64,7 @@ public class Elevator extends SubsystemBase{
     }
 
     public void setpoint(double setpoint){
-        this.setpoint = transform(setpoint);
+        this.setpoint = setpoint;
     }
 
     public void tryRumble(boolean rumble){
@@ -75,38 +76,39 @@ public class Elevator extends SubsystemBase{
         return (val-12.5)/0.209653;
     }
 
-    @Override
-    public void periodic(){ // Needs implementation: All of manual control, including limit switch logic. Should change limit switch logic for both, use if, else, limit, set.
-        encoderValue = getRotation();
-        // SmartDashboard.putNumber("15", transform(15));
-        // SmartDashboard.putNumber("31.5", transform(31.5));
-        // If upper limit switch is not hit, canDown is 1. If lower is not hit, canUp is 1. Add logic to set encoders to x when limit is hit.
-        // if ((!lowerLimitSwitch.get())){ 
-        //     canDown = 0;
-        // }
-        // else {
-        //     canDown = 1;
-        // }
-        // if ((!upperLimitSwitch.get())){
-        //     canUp = 0;
-        // }
-        // else {
-        //     canUp = 1;
-        // }
+        // Transforms setpoint into motor turns.
+    public double antiTransform (double val) {
+        return (val*0.209653)+12.5;
+    }
 
-        if ((encoderValue < 20)){ 
+
+    @Override
+    public void periodic(){
+        encoderValue = getRotation();
+        // SmartDashboard.putNumber("safety elev", encoderValue);
+        // If upper limit switch is not hit, canDown is 1. If lower is not hit, canUp is 1.
+        // SmartDashboard.putNumber("elevator value", m_elevInterpolator.value(Math.abs(RobotContainer.m_arm.realEncoderValue)));
+        if ((!lowerLimitSwitch.get())
+        ){ // ZERO ENCODERS AND WHATNOT, NEED TO ACCOUNT FOR ENCODER OFFSET THINGY IN OTHER PARTS OF THE CODE
             canDown = 0;
+            m_Leader.setPosition(0); // CONSIDER SLIGHTLY HIGHER THAN ZERO (THE VALUE AS SOON AS WE TOUCH THE SWITCH)
+            setpoint = m_Leader.getPosition().getValueAsDouble();
         }
         else {
             canDown = 1;
         }
-        if ((encoderValue > 210)){
+        if ((!upperLimitSwitch.get())){
             canUp = 0;
+            m_Leader.setPosition(229); // CHECK VALUE........
+            setpoint = m_Leader.getPosition().getValueAsDouble();
         }
         else {
             canUp = 1;
         }
-
+        // SmartDashboard.putNumber("elevtest1", m_elevInterpolator.value(Math.abs(RobotContainer.m_arm.realEncoderValue)));
+        // if (encoderValue < m_elevInterpolator.value(Math.abs(RobotContainer.m_arm.realEncoderValue))) {
+        //     canDown = 0;
+        // }
         double leftY = -MathUtil.applyDeadband(RobotContainer.m_mechController.getLeftY(), 0.15);
         if (leftY==0) {
             speed = pid.calculate(encoderValue, setpoint);
@@ -122,10 +124,6 @@ public class Elevator extends SubsystemBase{
         }
         // else if (Controller.manual) {
         else {
-            // if (((MathUtil.applyDeadband(encoderValue-top, tol2) == 0) || (MathUtil.applyDeadband(encoderValue-bottom, tol2) == 0))){
-            //     canDown *= 0.2;
-            //     canUp *= 0.2;
-            // }
             if (leftY > 0){
                 m_Leader.set(leftY*canUp);
             }
@@ -136,20 +134,24 @@ public class Elevator extends SubsystemBase{
             tryRumble = false;
         }
 
+        if (MathUtil.applyDeadband(encoderValue-setpoint, tol) == 0){
+            there = true;
+        }
+        else {
+            there = false;
+        }
+
         // Rumble logic.
-        if (tryRumble){
-            if (MathUtil.applyDeadband(encoderValue-setpoint, tol) == 0){
+        if (tryRumble && there){
                 readyRumble = true;
             }
-            else {
-                readyRumble = false;
-            }
+        else {
+            readyRumble = false;
         }
 
         SmartDashboard.putNumber("(Elevator) CanUp", canUp);
         SmartDashboard.putNumber("(Elevator) CanDown", canDown);
         SmartDashboard.putNumber("(Elevator) True encoder value", encoderValue);
         SmartDashboard.putNumber("(Elevator) True setpoint elev", setpoint);
-        // SmartDashboard.putNumber("rightY", leftY);
     }
 }

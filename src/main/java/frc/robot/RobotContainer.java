@@ -10,6 +10,7 @@ import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Controller;
 import frc.robot.subsystems.Controller;
 import frc.robot.subsystems.Elevator;
+import frc.robot.subsystems.GroundIntake;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.MotorRunnerElevManual;
 import frc.robot.subsystems.MotorRunnerArmManual;
@@ -52,7 +53,7 @@ public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   
   public static final SwerveSubsystem drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),"swerve"));
-  public static final Vision m_vision = new Vision();
+  // public static final Vision m_vision = new Vision();
   private final SendableChooser<Command> autoChooser;
   
 
@@ -61,16 +62,17 @@ public class RobotContainer {
   // public final MotorRunnerElevManual test1 = new MotorRunnerElevManual();
 
 
-  // public final Intake m_intake = new Intake();
+  public final Intake m_intake = new Intake();
 
+  public final GroundIntake m_groundintake = new GroundIntake();
 
   // These have to be commented out without jack and ruby
-  private static final Arm m_arm = new Arm();
-  // public static final Elevator m_elevator = new Elevator();
-  // private final ControllerTest m_controller = new ControllerTest(m_elevator, m_arm);
+  public static final Arm m_arm = new Arm();
+  public static final Elevator m_elevator = new Elevator();
+  public static final Controller m_controller = new Controller(m_elevator, m_arm);
 
 
-  // private final Controller m_controller = new Controller(m_elevator, m_arm, m_intake);
+  // private static final Controller m_controller = new Controller(m_elevator, m_arm, m_intake);
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   public static final CommandXboxController m_driverController = new CommandXboxController(OperatorConstants.kDriverControllerPort); 
@@ -153,10 +155,10 @@ public class RobotContainer {
     // m_driverController.b().whileTrue(autoAlign);
     // m_mechController.rightBumper().whileTrue(m_controller.PIDStop());
     // //NEVER PUT BELOW 12.5. JUST DON'T TOUCH ANY OF THE NUMBERS. OR ANY OF THE LETTERS. OR THE COMPUTER? UNLESS YOU'RE ON DISABLING.
-    // m_mechController.a().whileTrue(m_controller.setpoint(10, 18.5));
-    // m_mechController.x().whileTrue(m_controller.setpoint(20, 26.5));
-    // m_mechController.b().whileTrue(m_controller.setpoint(30, 20));
-    // m_mechController.y().whileTrue(m_controller.setpoint(-20, 24.5));
+    // m_mechController.a().whileTrue(m_controller.setpointArm(10));
+    // m_mechController.x().whileTrue(m_controller.setpointArm(20));
+    // // m_mechController.b().whileTrue(m_controller.setpoint(30, 13.5));
+    // m_mechController.y().whileTrue(m_controller.setpointArm(-20));
     // m_mechController.leftBumper().whileTrue(m_controller.setpoint(-90, 31.5));
   }
 

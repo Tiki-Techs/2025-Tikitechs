@@ -27,10 +27,9 @@ public class Vision extends SubsystemBase {
     public static double angleX;
     public static double skew;
     public static String cam = "front";
-    public String id = "";
+    public static String id = "";
 
     public void setBack () {
-      distance = backTable.getDoubleArray(new double[5])[2];
       angleX = back.getEntry("tx").getDouble(0);
       angleY = back.getEntry("ty").getDouble(0);
       skew = backTable.getDoubleArray(new double[5])[4];
@@ -63,7 +62,7 @@ public class Vision extends SubsystemBase {
       skew = frontTable.getDoubleArray(new double[5])[4];
       cam = "front";
       double id = front.getEntry("tid").getDouble(0);
-      SmartDashboard.putNumber("num id", id);
+      // SmartDashboard.putNumber("num id", id);
       if (((id >= 12) && (id <= 13)) || ((id >= 1) && (id <= 2))) {
         this.id = "Coral Feeder";
       }
@@ -88,8 +87,8 @@ public class Vision extends SubsystemBase {
     public void periodic() {
       double tarF = (double) front.getEntry("tv").getInteger(0);
       double tarB = (double) back.getEntry("tv").getInteger(0);
-      SmartDashboard.putNumber("front", tarF);
-      SmartDashboard.putNumber("back", tarB);
+      // SmartDashboard.putNumber("front", tarF);
+      // SmartDashboard.putNumber("back", tarB);
       if ((tarF == 1) && (tarB == 1)) {
         double disF = frontTable.getDoubleArray(new double[5])[2];
         double disB = backTable.getDoubleArray(new double[5])[2];

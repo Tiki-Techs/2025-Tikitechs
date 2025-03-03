@@ -95,15 +95,15 @@ public class SwerveSubsystem extends SubsystemBase{
     }
 
     public double distance () {
-      if (RobotContainer.m_vision.id != ""){
-        return visionDistances.get(RobotContainer.m_vision.id);
+      if (Vision.id != ""){
+        return visionDistances.get(Vision.id);
       }
       else {
         if (Vision.cam == "back") {
-          return 1.0; // change
+          return 0; // change
         }
         else {
-          return -1.0; // change
+          return 0; // change
         }
       }
       // return 1.0;
@@ -248,48 +248,48 @@ swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(
    
   public Command AlignTest() {
     return run (() -> {
-      if (Vision.cam == "back") {
-        if(MathUtil.applyDeadband(Vision.skew, 6) != 0){
-          swerveDrive.drive(
-          swerveDrive.swerveController.getTargetSpeeds(0,
-          // 0, Math.min(0.15*(Math.signum(Vision.angleX-Vision.skew)), (Vision.angleX-Vision.skew)*0.2), 
-          0,
-          // swerveDrive.getOdometryHeading().getRadians()-(0.1*Math.signum(Vision.skew)), 
-          swerveDrive.getOdometryHeading().getRadians()-(0.5*Math.signum(Vision.skew)), 
-          swerveDrive.getOdometryHeading().getRadians(), 
-          swerveDrive.getMaximumChassisVelocity()));
-          // SmartDashboard.putString("Align Test 1", "skew");
-      }
+    //   if (Vision.cam == "back") {
+    //     if(MathUtil.applyDeadband(Vision.skew, 6) != 0){
+    //       swerveDrive.drive(
+    //       swerveDrive.swerveController.getTargetSpeeds(0,
+    //       // 0, Math.min(0.15*(Math.signum(Vision.angleX-Vision.skew)), (Vision.angleX-Vision.skew)*0.2), 
+    //       0,
+    //       // swerveDrive.getOdometryHeading().getRadians()-(0.1*Math.signum(Vision.skew)), 
+    //       swerveDrive.getOdometryHeading().getRadians()-(0.5*Math.signum(Vision.skew)), 
+    //       swerveDrive.getOdometryHeading().getRadians(), 
+    //       swerveDrive.getMaximumChassisVelocity()));
+    //       // SmartDashboard.putString("Align Test 1", "skew");
+    //   }
 
-        else if (MathUtil.applyDeadband(Vision.angleX, 5) != 0){
-          swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(
-          0, 0.05*Math.signum(Vision.angleX-Vision.skew),
-          swerveDrive.getOdometryHeading().getRadians(), 
-          swerveDrive.getOdometryHeading().getRadians(), 
-          swerveDrive.getMaximumChassisVelocity()));
-          // SmartDashboard.putString("Align Test 1", "center");
-        }
+    //     else if (MathUtil.applyDeadband(Vision.angleX, 5) != 0){
+    //       swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(
+    //       0, 0.05*Math.signum(Vision.angleX-Vision.skew),
+    //       swerveDrive.getOdometryHeading().getRadians(), 
+    //       swerveDrive.getOdometryHeading().getRadians(), 
+    //       swerveDrive.getMaximumChassisVelocity()));
+    //       // SmartDashboard.putString("Align Test 1", "center");
+    //     }
 
-        else if (MathUtil.applyDeadband(Vision.distance-distance(), 0.05) != 0){
-          swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(
-          -0.2*(Math.signum(Vision.distance-distance())), 0,
-          swerveDrive.getOdometryHeading().getRadians(), 
-          swerveDrive.getOdometryHeading().getRadians(), 
-          swerveDrive.getMaximumChassisVelocity()));
-          // SmartDashboard.putString("Align Test 1", "distance");
-        }
+    //     else if (MathUtil.applyDeadband(Vision.distance-distance(), 0.05) != 0){
+    //       swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(
+    //       -0.2*(Math.signum(Vision.distance-distance())), 0,
+    //       swerveDrive.getOdometryHeading().getRadians(), 
+    //       swerveDrive.getOdometryHeading().getRadians(), 
+    //       swerveDrive.getMaximumChassisVelocity()));
+    //       // SmartDashboard.putString("Align Test 1", "distance");
+    //     }
 
-        else {
-          swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(0, 0, swerveDrive.getOdometryHeading().getRadians(), swerveDrive.getOdometryHeading().getRadians(), swerveDrive.getMaximumChassisVelocity()));
-          // SmartDashboard.putString("Align Test 1", "good");
-        }
-      }
-    else if (Vision.cam == "front") {
-      if(MathUtil.applyDeadband(Vision.skew, 6) != 0){
+    //     else {
+    //       swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(0, 0, swerveDrive.getOdometryHeading().getRadians(), swerveDrive.getOdometryHeading().getRadians(), swerveDrive.getMaximumChassisVelocity()));
+    //       // SmartDashboard.putString("Align Test 1", "good");
+    //     }
+    //   }
+    // else if (Vision.cam == "front") {
+      if(MathUtil.applyDeadband(Vision.skew, 3.2) != 0){
         swerveDrive.drive(
         swerveDrive.swerveController.getTargetSpeeds(0,
         0,
-        swerveDrive.getOdometryHeading().getRadians()-(0.5*Math.signum(Vision.angleX-Vision.skew)), 
+        swerveDrive.getOdometryHeading().getRadians()-(0.1*Math.signum(Vision.angleX-Vision.skew)), 
         swerveDrive.getOdometryHeading().getRadians(), 
         swerveDrive.getMaximumChassisVelocity()));
         // SmartDashboard.putString("Align Test 1", "skew");
@@ -297,7 +297,7 @@ swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(
 
       else if (MathUtil.applyDeadband(Vision.angleX, 5) != 0){
         swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(
-        0, -0.05*Math.signum(Vision.angleX-Vision.skew),
+        0, -0.02*Math.signum(Vision.angleX-Vision.skew),
         swerveDrive.getOdometryHeading().getRadians(), 
         swerveDrive.getOdometryHeading().getRadians(), 
         swerveDrive.getMaximumChassisVelocity()));
@@ -306,17 +306,17 @@ swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(
 
       else if (MathUtil.applyDeadband(Vision.distance-distance(), 0.05) != 0){
         swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(
-        0.2*(Math.signum(Vision.distance-distance())), 0,
+        0.02*(Math.signum(Vision.distance-distance())), 0,
         swerveDrive.getOdometryHeading().getRadians(), 
         swerveDrive.getOdometryHeading().getRadians(), 
         swerveDrive.getMaximumChassisVelocity()));
         // SmartDashboard.putString("Align Test 1", "distance");
-      }
+    //   }
 
-      else {
-        swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(0, 0, swerveDrive.getOdometryHeading().getRadians(), swerveDrive.getOdometryHeading().getRadians(), swerveDrive.getMaximumChassisVelocity()));
-        // SmartDashboard.putString("Align Test 1", "good");
-      }
+    //   else {
+    //     swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(0, 0, swerveDrive.getOdometryHeading().getRadians(), swerveDrive.getOdometryHeading().getRadians(), swerveDrive.getMaximumChassisVelocity()));
+    //     // SmartDashboard.putString("Align Test 1", "good");
+    //   }
     }
     });
   }
@@ -351,23 +351,23 @@ public void periodic(){
     // SmartDashboard.putNumber("gyro test", swerveDrive.getGyroRotation3d().getAngle());
     m_field.setRobotPose(swerveDrive.getPose());
 
-    if(MathUtil.applyDeadband(Vision.skew, 6) != 0){
-        SmartDashboard.putString("Align Test 1", "skew");
-    }
-
-    else if (MathUtil.applyDeadband(Vision.angleX, 5) != 0){
-      SmartDashboard.putString("Align Test 1", "center");
-    }
-
-    // else if (MathUtil.applyDeadband(Vision.distance-distance(), 0.05) != 0){
-    //   SmartDashboard.putString("Align Test 1", "distance");
+    // if(MathUtil.applyDeadband(Vision.skew, 6) != 0){
+    //     SmartDashboard.putString("Align Test 1", "skew");
     // }
 
-    else {
-      SmartDashboard.putString("Align Test 1", "good");
-    }
+    // else if (MathUtil.applyDeadband(Vision.angleX, 5) != 0){
+    //   SmartDashboard.putString("Align Test 1", "center");
+    // }
+
+    // // else if (MathUtil.applyDeadband(Vision.distance-distance(), 0.05) != 0){
+    // //   SmartDashboard.putString("Align Test 1", "distance");
+    // // }
+
+    // else {
+    //   SmartDashboard.putString("Align Test 1", "good");
+    // }
     
-    SmartDashboard.putNumber("map test", distance());
+    // SmartDashboard.putNumber("map test", distance());
     }
   }
 

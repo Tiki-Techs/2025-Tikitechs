@@ -136,12 +136,18 @@ public class RobotContainer {
   //  */
 
   private void configureBindings() {
-    // drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
-    // m_driverController.a().whileTrue(zeroGyro);
+    drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
+    m_driverController.a().whileTrue(zeroGyro);
+    m_mechController.a().whileFalse(m_groundintake.haveSwitch());
     // m_driverController.b().whileTrue(autoAlign);
     // m_mechController.rightBumper().whileTrue(m_controller.PIDStop());
+    // m_mechController.a().whileTrue(m_groundintake.intake());
+    // m_mechController.y().whileTrue(m_groundintake.groundIntakeHas());
+    // // m_mechController.b().whileTrue(m_groundintake.l1());
+    // m_mechController.b().whileTrue(m_groundintake.off());
+    // m_mechController.x().whileTrue(m_groundintake.mainIntakeHas());
     // //NEVER PUT BELOW 12.5. JUST DON'T TOUCH ANY OF THE NUMBERS. OR ANY OF THE LETTERS. OR THE COMPUTER? UNLESS YOU'RE ON DISABLING.
-    m_mechController.a().whileTrue(m_controller.PIDStop());
+    // m_mechController.a().whileTrue(m_controller.PIDStop());
     // m_mechController.x().whileTrue(m_controller.setpointArm(90));
     // m_mechController.b().whileTrue(m_controller.setpointArm(-90));
     // m_mechController.y().whileTrue(m_controller.setpointArm(0));

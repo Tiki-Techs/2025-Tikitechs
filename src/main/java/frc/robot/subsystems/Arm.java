@@ -139,10 +139,10 @@ public class Arm extends SubsystemBase{
 
         // WHEN WITHIN 130 DEGREES OF THE TOP ON EITHER SIDE, SETS ISCCW. THIS WAY, ISCCW IS NOT SET IMMEDIATELY
         // WHEN GOING PAST THE BOTTOM MIDDLE
-        if (realEncoderValue < 165 && realEncoderValue > 0){
+        if (realEncoderValue < 90 && realEncoderValue > 0){
             isCCW = 1;
         }
-        else if (realEncoderValue > -165 && realEncoderValue < 0) {
+        else if (realEncoderValue > -90 && realEncoderValue < 0) {
             isCCW = -1;
         }
         this.down = 180*isCCW;
@@ -241,7 +241,12 @@ public class Arm extends SubsystemBase{
         else if (speed < -1) {
             speed = -1;
         }
-        m_Leader.set(speed*.15);
+        if (isCCW == 0) {
+            m_Leader.set(0);
+        }
+        else {
+            m_Leader.set(speed*.15);
+        }
 
         // IF MEANT TO RUMBLE, WILL CHECK WHETHER OR NOT THE POSITION IS WITHIN A CERTAIN RANGE OF THE DESIRED POSITION.
         // IF SO, WILL SET READY RUMBLE TO TRUE. SEE CONTROLLER PERIODIC.

@@ -29,7 +29,7 @@ public class Arm extends SubsystemBase{
     public TalonFX m_Follower = new TalonFX(11);
     public Follower follower = new Follower(12, false);
     public PIDController pid = new PIDController(0.014, 0, 0.00008); // TUNE PID
-    public DutyCycleEncoder degEncoder = new DutyCycleEncoder(1, 360, 148.24728);
+    public DutyCycleEncoder degEncoder = new DutyCycleEncoder(1, 360, 149.14728);
     // public DutyCycleEncoder degEncoder = new DutyCycleEncoder(1);
     private final LinearInterpolator interpolator = new LinearInterpolator();
     private PolynomialSplineFunction m_armInterpolator;
@@ -58,9 +58,9 @@ public class Arm extends SubsystemBase{
     public double algaeLow;
     public double algaeHigh;
     public boolean positiveUp;
-    public static double down;
+    public double down;
     public double up;
-    public static boolean there;
+    public boolean there;
 
     // CLASS CONSTRUCTOR, CALLED ON INITIALIZATION OF CLASS (DEPLOYMENT OF CODE IF CLASS IS CREATED IN ROBOT CONTAINER).
     public Arm(){
@@ -73,13 +73,25 @@ public class Arm extends SubsystemBase{
         double[] elev = Controller.elevSafety;
         double[] arm = Controller.armSafety;
         m_armInterpolator = interpolator.interpolate(elev, arm);
-        if (realEncoderValue < 180 && realEncoderValue > 0){
+        double tempenc = degEncoder.get();
+        if (tempenc < 173 && tempenc > 0){
             isCCW = 1;
         }
-        else if (realEncoderValue > -180 && realEncoderValue < 0) {
+        else if (tempenc > -173 && tempenc < 0) {
             isCCW = -1;
         }
     }
+
+    public double down () {
+        return down;
+    }
+
+    public void kill () {
+        m_Leader.set(0);
+    }
+    // public boolean there () {
+
+    // }
 
     // SETTER TO CHANGE SETPOINT FROM OTHER CLASSES.
     public void setpoint(double setpoint){
@@ -133,7 +145,7 @@ public class Arm extends SubsystemBase{
         else if (realEncoderValue > -165 && realEncoderValue < 0) {
             isCCW = -1;
         }
-        down = 180*isCCW;
+        this.down = 180*isCCW;
         // SmartDashboard.putNumber("Arm value", m_armInterpolator.value(Math.abs(RobotContainer.m_elevator.encoderValue)));
         // IF THE ARM BEGAN CCW AND IS BETWEEN -160 AND -140 (IN THE LOWER RIGHT QUADRANT), CANNOT MOVE FURTHER CCW,
         // VICE VERSA. THIS PREVENTS TWISTING OF THE INTAKE WIRES.
@@ -149,7 +161,7 @@ public class Arm extends SubsystemBase{
         }
 
         // GETS RIGHT JOYSTICK X VALUE OF THE MECH CONTROLLER IF IT IS MOVED PAST A CERTAIN RANGE, OTHERWISE 0.
-        double rightX = -MathUtil.applyDeadband(RobotContainer.m_mechController.getRightX()*0.75, 0.15);
+        double rightX = -MathUtil.applyDeadband(RobotContainer.m_mechController.getRightX(), 0.15);
         if (isCCW == 1) {
             realEncoderValue2 = Math.abs(realEncoderValue);
         }
@@ -229,7 +241,7 @@ public class Arm extends SubsystemBase{
         else if (speed < -1) {
             speed = -1;
         }
-        m_Leader.set(speed*.2);
+        m_Leader.set(speed*.15);
 
         // IF MEANT TO RUMBLE, WILL CHECK WHETHER OR NOT THE POSITION IS WITHIN A CERTAIN RANGE OF THE DESIRED POSITION.
         // IF SO, WILL SET READY RUMBLE TO TRUE. SEE CONTROLLER PERIODIC.

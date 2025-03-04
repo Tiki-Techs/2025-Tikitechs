@@ -41,9 +41,9 @@ public class Elevator extends SubsystemBase{
     public double test1 = 60;
     public double test2 = 100;
     public static double down = 140;
-    public static double down2;
     public static boolean there = false;
     public double up;
+    public double groundIntakeLevel = 54;
 
     public double tol = 3;
     public double tol2 = 3;
@@ -61,6 +61,10 @@ public class Elevator extends SubsystemBase{
 
     public double getRotation(){
         return m_Leader.getPosition().getValueAsDouble();
+    }
+
+    public void kill () {
+        m_Leader.set(0);
     }
 
     public void setpoint(double setpoint){
@@ -106,9 +110,11 @@ public class Elevator extends SubsystemBase{
             canUp = 1;
         }
         // SmartDashboard.putNumber("elevtest1", m_elevInterpolator.value(Math.abs(RobotContainer.m_arm.realEncoderValue)));
-        // if (encoderValue < m_elevInterpolator.value(Math.abs(RobotContainer.m_arm.realEncoderValue))) {
-        //     canDown = 0;
-        // }
+        if ((encoderValue < groundIntakeLevel && GroundIntake.have)
+        // || encoderValue < m_elevInterpolator.value(Math.abs(RobotContainer.m_arm.realEncoderValue))
+        ) {
+            canDown = 0;
+        }
         double leftY = -MathUtil.applyDeadband(RobotContainer.m_mechController.getLeftY(), 0.15);
         if (leftY==0) {
             speed = pid.calculate(encoderValue, setpoint);

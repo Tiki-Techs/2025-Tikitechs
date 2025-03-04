@@ -45,7 +45,7 @@ public class Intake extends SubsystemBase{
 
         if (!limitSwitch.get()) {
             if (!have) {
-                if ((MathUtil.applyDeadband(RobotContainer.m_arm.realEncoderValue2-Arm.down, 10) == 0) && (MathUtil.applyDeadband(RobotContainer.m_elevator.encoderValue-Elevator.down, 13) == 0)){
+                if ((MathUtil.applyDeadband(RobotContainer.m_arm.realEncoderValue2-RobotContainer.m_arm.down, 10) == 0) && (MathUtil.applyDeadband(RobotContainer.m_elevator.encoderValue-Elevator.down, 13) == 0)){
                     coral = true;
                     SmartDashboard.putString("holding", "coral");
                 }
@@ -69,13 +69,17 @@ public class Intake extends SubsystemBase{
         // SmartDashboard.putNumber("Intake Set Speed", speed);
         if (MathUtil.applyDeadband(RobotContainer.m_mechController.getRightTriggerAxis(), 0.15) != 0){
             // m_Leader.set(Math.signum(RobotContainer.m_driverController.getLeftY()));
-            m_Leader.set(RobotContainer.m_mechController.getRightTriggerAxis());
+            m_Leader.set(RobotContainer.m_mechController.getRightTriggerAxis()*.6);
             
             // SmartDashboard.putNumber("right", RobotContainer.m_mechController.getRightTriggerAxis());
         }
 
         else if (have && algae) {
             m_Leader.set(-0.07);
+        }
+
+        else if (have && coral) {
+            m_Leader.set(0);
         }
 
         else if (MathUtil.applyDeadband(RobotContainer.m_mechController.getLeftTriggerAxis(), 0.15) != 0){

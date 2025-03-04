@@ -16,7 +16,6 @@ import frc.robot.subsystems.MotorRunnerElevManual;
 import frc.robot.subsystems.MotorRunnerArmManual;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.Vision;
-import frc.lib.util.KeyboardAndMouse;
 import frc.robot.Constants.ControllerConstants;
 import frc.robot.Constants.ElevatorConstants;
 
@@ -67,7 +66,7 @@ public class RobotContainer {
   public final GroundIntake m_groundintake = new GroundIntake();
 
   // These have to be commented out without jack and ruby
-  public static final Arm m_arm = new Arm();
+  public static Arm m_arm = new Arm();
   public static final Elevator m_elevator = new Elevator();
   public static final Controller m_controller = new Controller(m_elevator, m_arm);
 
@@ -87,24 +86,11 @@ public class RobotContainer {
 
 
 
-
-
-
-
-
     // KeyboardAndMouse.getInstance().key("a").onTrue(new InstantCommand( () -> Intake.m_Leader.set(0.3)));
     // autoChooser.setDefaultOption("Mid Auto", AutoBuilder.buildAuto(middleAuto));
 
 
-
-
-
-
-
-
-
-
-    
+ 
   }
 
   Command driveFieldOrientedDirectAngle = drivebase.driveCommandF(
@@ -155,10 +141,10 @@ public class RobotContainer {
     // m_driverController.b().whileTrue(autoAlign);
     // m_mechController.rightBumper().whileTrue(m_controller.PIDStop());
     // //NEVER PUT BELOW 12.5. JUST DON'T TOUCH ANY OF THE NUMBERS. OR ANY OF THE LETTERS. OR THE COMPUTER? UNLESS YOU'RE ON DISABLING.
-    // m_mechController.a().whileTrue(m_controller.setpointArm(10));
-    // m_mechController.x().whileTrue(m_controller.setpointArm(20));
-    // // m_mechController.b().whileTrue(m_controller.setpoint(30, 13.5));
-    // m_mechController.y().whileTrue(m_controller.setpointArm(-20));
+    m_mechController.a().whileTrue(m_controller.PIDStop());
+    // m_mechController.x().whileTrue(m_controller.setpointArm(90));
+    // m_mechController.b().whileTrue(m_controller.setpointArm(-90));
+    // m_mechController.y().whileTrue(m_controller.setpointArm(0));
     // m_mechController.leftBumper().whileTrue(m_controller.setpoint(-90, 31.5));
   }
 

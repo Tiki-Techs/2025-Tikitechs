@@ -54,6 +54,14 @@ public class Controller extends SubsystemBase{
 
     }
 
+    public Command setpointArmDown(){
+        return new InstantCommand(
+                () -> {
+                    arm.setpoint(arm.down);
+                    rumble(true);
+                }, this);
+
+    }
     
     public Command setpointElevator(double elevatorPoint){
         return new InstantCommand(
@@ -74,28 +82,28 @@ public class Controller extends SubsystemBase{
 
     }
 
-    public Command pickup(){
-        return new InstantCommand(
-                () -> {
-                    arm.setpoint(Arm.down);
-                    // may just be able to do arm and elevator at same time
-                    elevator.setpoint(Elevator.down2);
-                    // intake in/mech control, decide later
-                    // if (!limitSwitch.get()){ // don't use an if, do an until
-                    //     setpoint(arm.up, arm.up);
-                    //     have = true;
-                    // }
-                    rumble(true);
-                }, this);
+    // public Command pickup(){
+    //     return new InstantCommand(
+    //             () -> {
+    //                 arm.setpoint(Arm.down);
+    //                 // may just be able to do arm and elevator at same time
+    //                 elevator.setpoint(Elevator.down2);
+    //                 // intake in/mech control, decide later
+    //                 // if (!limitSwitch.get()){ // don't use an if, do an until
+    //                 //     setpoint(arm.up, arm.up);
+    //                 //     have = true;
+    //                 // }
+    //                 rumble(true);
+    //             }, this);
 
-    }
+    // }
 
 
     public Command PIDStop(){
         return new InstantCommand(
                 () -> {
-                    arm.setpoint(arm.realEncoderValue);
-                    elevator.setpoint = elevator.encoderValue;
+                    arm.kill();
+                    elevator.kill();
                     rumble(false);
                 }, this);
 
@@ -103,9 +111,13 @@ public class Controller extends SubsystemBase{
   
     @Override
     public void periodic (){ // add in stuff based on vision, too?
-        // if (GroundIntake.have && !Intake.have) {
-        //     setpoint(Arm.down, Elevator.down);
-        // }
+        if (GroundIntake.have && !Intake.have) {
+            // setpoint(Arm.down, Elevator.down);
+            SmartDashboard.putString("Controller Action", "Pick Up Coral");
+        }
+        else {
+            SmartDashboard.putString("Controller Action", "Nothing");
+        }
         
         if (arm.readyRumble && elevator.readyRumble){
             // RobotContainer.m_driverController.setRumble(RumbleType.kBothRumble, 1);

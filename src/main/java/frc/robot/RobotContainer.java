@@ -138,7 +138,9 @@ public class RobotContainer {
   private void configureBindings() {
     drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
     m_driverController.a().whileTrue(zeroGyro);
-    m_mechController.a().whileFalse(m_groundintake.haveSwitch());
+    m_mechController.a().whileTrue(m_groundintake.haveSwitch());
+    m_mechController.b().whileTrue(m_groundintake.off());
+    m_mechController.x().whileTrue(m_controller.setpointArmDown());
     // m_driverController.b().whileTrue(autoAlign);
     // m_mechController.rightBumper().whileTrue(m_controller.PIDStop());
     // m_mechController.a().whileTrue(m_groundintake.intake());

@@ -43,7 +43,7 @@ public class Elevator extends SubsystemBase{
     public static double down = 140;
     public static boolean there = false;
     public double up;
-    public double groundIntakeLevel = 150; // change later
+    public double groundIntakeLevel = 50; // change later
 
     public double tol = 3;
     public double tol2 = 3;

@@ -32,18 +32,19 @@ public class Arm extends SubsystemBase{
     public DutyCycleEncoder degEncoder = new DutyCycleEncoder(1, 360, 149.14728);
     // public DutyCycleEncoder degEncoder = new DutyCycleEncoder(1);
     private final LinearInterpolator interpolator = new LinearInterpolator();
-    private PolynomialSplineFunction m_armInterpolator;
+    private PolynomialSplineFunction m_armInterpolatorGI;
+    private PolynomialSplineFunction m_armInterpolatorBumper;
 
     // LOGIC VARIABLES
     public double realEncoderValue;
-    
+    public double throughboreValue;
     public double realEncoderValue2;
     public double desiredEncoderValue;
     public boolean tryRumble = false;
     public boolean readyRumble = false;
     public double canRight = 0;
     public double canLeft = 0;
-    public double isCCW;
+    public double isCCW = -456787;
     public double speed = 0;
     public double tol = 3;
     public boolean hasAlgae = false; // SHOULD NOT NEED
@@ -70,16 +71,13 @@ public class Arm extends SubsystemBase{
         // INTERPOLATOR AND SPLINE FUNCTION TRANSFORM GIVEN SETS OF VALUES TO A FUNCTION. THE TYPE OF
         // FUNCTION (CUBIC, SQUARED, ETC) CAN CHANGE. USED TO DETERMINE WHAT ARM VALUES ARE SAFE BASED
         // ON THE CURRENT ELEVATOR POSITION.
-        double[] elev = Controller.elevSafety;
-        double[] arm = Controller.armSafety;
-        m_armInterpolator = interpolator.interpolate(elev, arm);
-        double tempenc = degEncoder.get();
-        if (tempenc < 173 && tempenc > 0){
-            isCCW = 1;
-        }
-        else if (tempenc > -173 && tempenc < 0) {
-            isCCW = -1;
-        }
+        double[] elevGI = Controller.elevSafetyGI;
+        double[] armGI = Controller.armSafetyGI;
+        
+        double[] elevBumper = Controller.elevSafetyBumper;
+        double[] armBumper = Controller.armSafetyBumper;
+        m_armInterpolatorGI = interpolator.interpolate(elevGI, armGI);
+        m_armInterpolatorBumper = interpolator.interpolate(elevBumper, armBumper);
     }
 
     public double down () {
@@ -121,6 +119,7 @@ public class Arm extends SubsystemBase{
         // TRANSFORMS THROUGHBORE VALUE FOR PID USAGE. TOP MIDDLE BECOMES 0, LEFT MIDDLE BECOMES 90, RIGHT MIDDLE
         // BECOMES 90, BOTTOM MIDDLE BECOMES 180/-180.
         // SmartDashboard.putNumber("through", degEncoder.get());
+        throughboreValue = degEncoder.get();
         realEncoderValue = transform(degEncoder.get());
         realEncoderValue2 = realEncoderValue;
         // Checks if able to move left and right (manual), needs to implement stuff with elevator map and whatnot
@@ -149,19 +148,19 @@ public class Arm extends SubsystemBase{
         // SmartDashboard.putNumber("Arm value", m_armInterpolator.value(Math.abs(RobotContainer.m_elevator.encoderValue)));
         // IF THE ARM BEGAN CCW AND IS BETWEEN -160 AND -140 (IN THE LOWER RIGHT QUADRANT), CANNOT MOVE FURTHER CCW,
         // VICE VERSA. THIS PREVENTS TWISTING OF THE INTAKE WIRES.
-        if (((isCCW == 1) && ((MathUtil.applyDeadband(realEncoderValue+165, 15) == 0))
-        //  || (realEncoderValue > m_armInterpolator.value(Math.abs(RobotContainer.m_elevator.encoderValue)))
+        if (((isCCW == 1) && ((MathUtil.applyDeadband(realEncoderValue+165, 15) == 0)) || (realEncoderValue2 > 0 && realEncoderValue2 < 90)
+         || (((realEncoderValue > m_armInterpolatorBumper.value(Math.abs(RobotContainer.m_elevator.encoderValue))) && RobotContainer.m_groundintake.clearArm) || (realEncoderValue > m_armInterpolatorGI.value(Math.abs(RobotContainer.m_elevator.encoderValue))) && !RobotContainer.m_groundintake.clearArm)
          )) {
             canRight = 0;
         }
-        else if (((isCCW == -1) && (((MathUtil.applyDeadband(realEncoderValue-165, 15) == 0)))
-        //  || (realEncoderValue < -m_armInterpolator.value(Math.abs(RobotContainer.m_elevator.encoderValue)))
+        if ((((isCCW == -1) && (((MathUtil.applyDeadband(realEncoderValue-165, 15) == 0))))
+         || (((realEncoderValue < -m_armInterpolatorBumper.value(Math.abs(RobotContainer.m_elevator.encoderValue))) && RobotContainer.m_groundintake.clearArm) || (realEncoderValue < -m_armInterpolatorGI.value(Math.abs(RobotContainer.m_elevator.encoderValue))) && !RobotContainer.m_groundintake.clearArm)
          )) {
             canLeft = 0;
         }
 
         // GETS RIGHT JOYSTICK X VALUE OF THE MECH CONTROLLER IF IT IS MOVED PAST A CERTAIN RANGE, OTHERWISE 0.
-        double rightX = -MathUtil.applyDeadband(RobotContainer.m_mechController.getRightX(), 0.15);
+        double rightX = -MathUtil.applyDeadband(RobotContainer.m_mechController.getRightX(), 0.15)*.75;
         if (isCCW == 1) {
             realEncoderValue2 = Math.abs(realEncoderValue);
         }
@@ -245,7 +244,7 @@ public class Arm extends SubsystemBase{
             m_Leader.set(0);
         }
         else {
-            m_Leader.set(speed*.15);
+            m_Leader.set(speed*.5);
         }
 
         // IF MEANT TO RUMBLE, WILL CHECK WHETHER OR NOT THE POSITION IS WITHIN A CERTAIN RANGE OF THE DESIRED POSITION.

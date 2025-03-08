@@ -5,6 +5,7 @@ import java.util.Map;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -18,27 +19,47 @@ import frc.robot.subsystems.Elevator;
 public class Controller extends SubsystemBase{
     public Elevator elevator;
     public Arm arm;
-    // public Intake intake;
+    public Intake intake;
     public boolean isDriving = false;
+    public final Timer m_Timer = new Timer();
+    public static double time;
     // public boolean readyOutput = false;
-    public static double[] elevSafety = {0, 5.58, 9.508, 14.9, 20.27, 25.06, 31.6, 38.31, 39.55, 53.68, 60.44, 74.42, 83.35, 102.3, 109, 240}; 
-    public static double[] armSafety =  {86, 91.6, 95.1, 100.4, 104, 107.8, 113.4, 119.7, 125.4, 129.27, 129.3, 137.3, 139.8, 144, 180, 180.1};
+    // public static double[] elevSafety = {0, 5.58, 9.508, 14.9, 20.27, 25.06, 31.6, 38.31, 39.55, 53.68, 60.44, 74.42, 83.35, 102.3, 109, 240}; 
+    // public static double[] armSafety =  {86, 91.6, 95.1, 100.4, 104, 107.8, 113.4, 119.7, 125.4, 129.27, 129.3, 137.3, 139.8, 144, 180, 180.1};
     
-    public static double[] elevSafety2 = {0, 0.0000001, 5.58, 9.508, 14.9, 20.27, 25.06, 31.6, 38.31, 39.55, 53.68, 60.44, 74.42, 83.35, 102.3, 105}; 
-    public static double[] armSafety2 =  {0, 86, 91.6, 95.1, 100.4, 104, 107.8, 113.4, 119.7, 125.4, 129.27, 129.3, 137.3, 139.8, 144, 180};
+    // public static double[] elevSafety2 = {0, 0.0000001, 5.58, 9.508, 14.9, 20.27, 25.06, 31.6, 38.31, 39.55, 53.68, 60.44, 74.42, 83.35, 102.3, 105}; 
+    // public static double[] armSafety2 =  {0, 86, 91.6, 95.1, 100.4, 104, 107.8, 113.4, 119.7, 125.4, 129.27, 129.3, 137.3, 139.8, 144, 180};
     
+    public static double[] elevSafetyGI = {0, 45.3, 57.5, 67.0, 76.3, 92.3, 105.4, 116.0, 121.6, 130.0, 133.0, 147.001, 240}; 
+    public static double[] armSafetyGI =  {91.0, 91.001, 99.3, 104.9, 108.9, 117.2, 122.6, 128.4, 131.4, 137.2, 147.1, 180, 180.1};
+
+    public static double[] elevSafetyGI2 = {0, 0.001, 56.3, 68.5, 78.0, 87.3, 105.3, 116.4, 127.0, 132.6, 141.0, 144.0, 144.001};
+    public static double[] armSafetyGI2 =  {0, 91.0, 91.001, 99.3, 104.9, 108.9, 117.2, 122.6, 128.4, 131.4, 137.2, 147.1, 180};
+
+    public static double[] elevSafetyBumper = {0, 8.4, 17.2, 28.4, 35.9, 46.7, 63.6, 66.6, 74.4, 84.3, 95.4, 240}; 
+    public static double[] armSafetyBumper =  {91.2, 97.6, 102.8, 107.8, 112.0, 115.2, 119.1, 122.1, 127.4, 136.5, 180, 180.1};
+
+    // public static double[] elevSafetyBumper2 = {0, 8.4, 17.2, 28.4, 35.9, 46.7, 63.6, 66.6, 74.4, 84.3, 95.4, 95.401};
+    // public static double[] armSafetyBumper2 =  {91.2, 97.6, 102.8, 107.8, 112.0, 115.2, 119.1, 122.1, 127.4, 136.5, , 180};
+    
+
+    public static double[] elevSafetyBumper2 = {0, 0.001, 8.4, 17.2, 28.4, 35.9, 46.7, 63.6, 66.6, 74.4, 84.3, 84.301};
+    public static double[] armSafetyBumper2 =  {0, 91.2, 97.6, 102.8, 107.8, 112.0, 115.2, 119.1, 122.1, 127.4, 136.5, 180};
+    
+
+
     // DigitalInput limitSwitch = new DigitalInput(200);  // check THE NEW INTAKE LIMIT SWITCH. COULD BE MADE IN INTAKE INSTEAD
 
 
-    // public Controller (Elevator elevator, Arm arm, Intake intake) {
-    //     this.elevator = elevator;
-    //     this.arm = arm;
-    //     this.intake = intake;
-
-    public Controller (Elevator elevator, Arm arm) {
+    public Controller (Elevator elevator, Arm arm, Intake intake) {
         this.elevator = elevator;
         this.arm = arm;
+        this.intake = intake;
     }
+    // public Controller (Elevator elevator, Arm arm) {
+    //     this.elevator = elevator;
+    //     this.arm = arm;
+    // }
 
     public void rumble(boolean rumble){
         // arm.tryRumble(rumble);
@@ -82,6 +103,16 @@ public class Controller extends SubsystemBase{
 
     }
 
+    public Command handoff(){
+        return new InstantCommand(
+                () -> {
+                    m_Timer.start();
+                    Intake.handoff = true;
+                    GroundIntake.handoff = true;
+                }, this);
+
+    }
+
     // public Command pickup(){
     //     return new InstantCommand(
     //             () -> {
@@ -108,6 +139,10 @@ public class Controller extends SubsystemBase{
                 }, this);
 
     }
+
+    public void timerStop(){
+        m_Timer.reset();
+    }
   
     @Override
     public void periodic (){ // add in stuff based on vision, too?
@@ -119,6 +154,8 @@ public class Controller extends SubsystemBase{
             SmartDashboard.putString("Controller Action", "Nothing");
         }
         
+        time = m_Timer.get();
+
         if (arm.readyRumble && elevator.readyRumble){
             // RobotContainer.m_driverController.setRumble(RumbleType.kBothRumble, 1);
             RobotContainer.m_driverController.setRumble(RumbleType.kBothRumble, 1); // figure out rumble = false

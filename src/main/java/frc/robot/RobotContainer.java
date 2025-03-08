@@ -52,8 +52,8 @@ public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   
   public static final SwerveSubsystem drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),"swerve"));
-  // public static final Vision m_vision = new Vision();
-  private final SendableChooser<Command> autoChooser;
+  public static final Vision m_vision = new Vision();
+  // private final SendableChooser<Command> autoChooser;
   
 
   // Only run these without jack and ruby
@@ -61,14 +61,14 @@ public class RobotContainer {
   // public final MotorRunnerElevManual test1 = new MotorRunnerElevManual();
 
 
-  public final Intake m_intake = new Intake();
+  public static final Intake m_intake = new Intake();
 
-  public final GroundIntake m_groundintake = new GroundIntake();
+  public static final GroundIntake m_groundintake = new GroundIntake();
 
   // These have to be commented out without jack and ruby
   public static Arm m_arm = new Arm();
   public static final Elevator m_elevator = new Elevator();
-  public static final Controller m_controller = new Controller(m_elevator, m_arm);
+  public static final Controller m_controller = new Controller(m_elevator, m_arm, m_intake);
 
 
   // private static final Controller m_controller = new Controller(m_elevator, m_arm, m_intake);
@@ -82,7 +82,7 @@ public class RobotContainer {
   public RobotContainer() {
     // Configure the trigger bindings
     configureBindings();
-    autoChooser = AutoBuilder.buildAutoChooser();
+    // autoChooser = AutoBuilder.buildAutoChooser();
 
 
 
@@ -139,9 +139,12 @@ public class RobotContainer {
     drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
     m_driverController.a().whileTrue(zeroGyro);
     m_mechController.a().whileTrue(m_groundintake.haveSwitch());
-    m_mechController.b().whileTrue(m_groundintake.off());
-    m_mechController.x().whileTrue(m_controller.setpointArmDown());
-    // m_driverController.b().whileTrue(autoAlign);
+    // m_mechController.b().whileTrue(m_groundintake.off());
+    m_mechController.x().whileTrue(m_controller.setpoint(-180, 139));
+    m_mechController.y().whileTrue(m_controller.setpoint(-46, 229));
+    m_mechController.b().whileTrue(m_controller.setpoint(-37.4, 100));
+    // m_mechController.povUp().whileTrue(m_controller.handoff());
+    m_driverController.b().whileTrue(autoAlign);
     // m_mechController.rightBumper().whileTrue(m_controller.PIDStop());
     // m_mechController.a().whileTrue(m_groundintake.intake());
     // m_mechController.y().whileTrue(m_groundintake.groundIntakeHas());
@@ -171,7 +174,8 @@ public class RobotContainer {
    // providing auto path from pathplanner
   public Command getAutonomousCommand() {
  
-    return new PathPlannerAuto("Test");
+    // return new PathPlannerAuto("Test");
+    return null;
   }
 
   public void periodic(){

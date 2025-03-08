@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ControllerConstants;
+import frc.robot.Robot;
 import frc.robot.RobotContainer;
 
 // 12.5 c, 
@@ -29,10 +30,11 @@ public class Elevator extends SubsystemBase{
     DigitalInput upperLimitSwitch = new DigitalInput(2);
     public double canDown;
     public double canUp;
-    public PIDController pid = new PIDController(0.008, 0, 0);
+    public PIDController pid = new PIDController(0.025, 0, 0);
     public DutyCycleEncoder degEncoder = new DutyCycleEncoder(0);
     private final LinearInterpolator interpolator = new LinearInterpolator();
-    private PolynomialSplineFunction m_elevInterpolator;
+    private PolynomialSplineFunction m_elevInterpolatorGI;
+    private PolynomialSplineFunction m_elevInterpolatorBumper;
 
     public double encoderValue;
     public double setpoint;
@@ -43,7 +45,10 @@ public class Elevator extends SubsystemBase{
     public static double down = 140;
     public static boolean there = false;
     public double up;
-    public double groundIntakeLevel = 50; // change later
+    public double groundIntakeLevel = 51; // change later
+    public double elevarmground = 144;
+    
+    public double aSDHUAWDUJHAOSDJUHWODIntakeLevel = 163; // change later
 
     public double tol = 3;
     public double tol2 = 3;
@@ -54,9 +59,13 @@ public class Elevator extends SubsystemBase{
     public Elevator(){
         m_Follower.setControl(follower);
         setpoint = getRotation();
-        double[] elev = Controller.elevSafety2;
-        double[] arm = Controller.armSafety2;
-        m_elevInterpolator = interpolator.interpolate(arm, elev);
+        double[] elevGI = Controller.elevSafetyGI2;
+        double[] armGI = Controller.armSafetyGI2;
+        
+        double[] elevBumper = Controller.elevSafetyBumper2;
+        double[] armBumper = Controller.armSafetyBumper2;
+        m_elevInterpolatorGI = interpolator.interpolate(armGI, elevGI);
+        m_elevInterpolatorBumper = interpolator.interpolate(armBumper, elevBumper);
     }
 
     public double getRotation(){
@@ -109,13 +118,14 @@ public class Elevator extends SubsystemBase{
         else {
             canUp = 1;
         }
+        if (((setpoint < groundIntakeLevel) || (encoderValue < groundIntakeLevel)) && (((RobotContainer.m_groundintake.desiredEncoderValue > 170) && (RobotContainer.m_groundintake.desiredEncoderValue < 180)) || ((RobotContainer.m_groundintake.realEncoderValue > 170) && (RobotContainer.m_groundintake.desiredEncoderValue < 180)))) {
+            canDown = 0;
+        }
         // SmartDashboard.putNumber("elevtest1", m_elevInterpolator.value(Math.abs(RobotContainer.m_arm.realEncoderValue)));
 
-        // if ((encoderValue < groundIntakeLevel && GroundIntake.have)
-        // // || encoderValue < m_elevInterpolator.value(Math.abs(RobotContainer.m_arm.realEncoderValue))
-        // ) {
-        //     canDown = 0;
-        // }
+        if (((RobotContainer.m_groundintake.clearArm) && (encoderValue < m_elevInterpolatorBumper.value(Math.abs(RobotContainer.m_arm.realEncoderValue)))) || ((!RobotContainer.m_groundintake.clearArm) && (encoderValue < m_elevInterpolatorGI.value(Math.abs(RobotContainer.m_arm.realEncoderValue))))) {
+            canDown = 0;
+        }
         
         double leftY = -MathUtil.applyDeadband(RobotContainer.m_mechController.getLeftY(), 0.15);
         if (leftY==0) {

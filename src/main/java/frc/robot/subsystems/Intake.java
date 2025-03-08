@@ -29,6 +29,7 @@ public class Intake extends SubsystemBase{
     public static boolean have = false;
     public static boolean coral = false;
     public static boolean algae = false;
+    public static boolean handoff = false;
     // ADD THE LIMIT SWITCH FOR 4
 
     public Intake(){
@@ -55,6 +56,8 @@ public class Intake extends SubsystemBase{
                 }
             }
             have = true;
+            handoff = false;
+            GroundIntake.handoff = false;
         }
         else {
             have = false;
@@ -67,7 +70,11 @@ public class Intake extends SubsystemBase{
         motorValue = m_Leader.get();
         // SmartDashboard.putNumber("Intake Actual Speed", motorValue);
         // SmartDashboard.putNumber("Intake Set Speed", speed);
-        if (MathUtil.applyDeadband(RobotContainer.m_mechController.getRightTriggerAxis(), 0.15) != 0){
+        if (handoff) {
+            m_Leader.set(0.5);
+        }
+        
+        else if (MathUtil.applyDeadband(RobotContainer.m_mechController.getRightTriggerAxis(), 0.15) != 0){
             // m_Leader.set(Math.signum(RobotContainer.m_driverController.getLeftY()));
             m_Leader.set(RobotContainer.m_mechController.getRightTriggerAxis()*.6);
             

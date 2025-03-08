@@ -12,6 +12,7 @@ import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -38,7 +39,7 @@ public class SwerveSubsystem extends SubsystemBase{
     private SwerveDrive swerveDrive;
     private final Field2d m_field = new Field2d();
     // double maximumSpeed = Units.feetToMeters(25);
-    double maximumSpeed = Units.feetToMeters(12.5);
+    double maximumSpeed = Units.feetToMeters(20);
     public static double visDist = 0.4;
     Map<String, Double> visionDistances = Map.of(
             "Coral Feeder", 0.5,
@@ -67,31 +68,31 @@ public class SwerveSubsystem extends SubsystemBase{
     // store this in your Constants file
    
     
-    AutoBuilder.configure(
-      this::getPose, // Robot pose supplier
-      this::resetOdometry, // Method to reset odometry (will be called if your auto has a starting pose)
-      this::getRobotRelativeSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-      (speeds, feedforwards) -> getRobotRelativeSpeeds(), // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
-      new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic drive trains
-              new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants
-              new PIDConstants(5.0, 0.0, 0.0) // Rotation PID constants
-      ),
+//     AutoBuilder.configure(
+//       this::getPose, // Robot pose supplier
+//       this::resetOdometry, // Method to reset odometry (will be called if your auto has a starting pose)
+//       this::getRobotRelativeSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+//       (speeds, feedforwards) -> getRobotRelativeSpeeds(), // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
+//       new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic drive trains
+//               new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants
+//               new PIDConstants(5.0, 0.0, 0.0) // Rotation PID constants
+//       ),
  
-      Constants.robotConfig, // The robot configuration
-      () -> {
-        // Boolean supplier that controls when the path will be mirrored for the red alliance
-        // This will flip the path being followed to the red side of the field.
-        // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+//       Constants.robotConfig, // The robot configuration
+//       () -> {
+//         // Boolean supplier that controls when the path will be mirrored for the red alliance
+//         // This will flip the path being followed to the red side of the field.
+//         // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
 
-        var alliance = DriverStation.getAlliance();
-        if (alliance.isPresent()) {
-          return alliance.get() == DriverStation.Alliance.Red;
-        }
-        return false;
-      },
+//         var alliance = DriverStation.getAlliance();
+//         if (alliance.isPresent()) {
+//           return alliance.get() == DriverStation.Alliance.Red;
+//         }
+//         return false;
+//       },
      
-      this // Reference to this subsystem to set requirements
-);
+//       this // Reference to this subsystem to set requirements
+// );
     }
 
     public double distance () {
@@ -112,11 +113,16 @@ public class SwerveSubsystem extends SubsystemBase{
 
         
     public Pose2d getPose(){
-      return getPose();
+      return swerveDrive.getPose();
     }
     public ChassisSpeeds getRobotRelativeSpeeds(){
-      return getRobotRelativeSpeeds();
+      return swerveDrive.getRobotVelocity();
     }
+
+    // public void drive() {
+    //   swerveDrive.drive();
+    // }
+
     public void resetOdometry(Pose2d initialHolonomicPose) {
       swerveDrive.resetOdometry(initialHolonomicPose); 
     }
@@ -154,6 +160,11 @@ public class SwerveSubsystem extends SubsystemBase{
     });
   }
 
+  public void teasd8238091() {
+    swerveDrive.drive(getRobotRelativeSpeeds());
+    
+  }
+
   public Command stopDrive()
 {
 return run(() -> {
@@ -183,7 +194,7 @@ Translation2d scaledInputs = SwerveMath.scaleTranslation(new Translation2d(trans
 swerveDrive.driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(
                                           scaledInputs.getX(), 
                                           scaledInputs.getY(),
-                                          swerveDrive.getOdometryHeading().getRadians() + angularRotationX.getAsDouble()*3.14,
+                                          swerveDrive.getOdometryHeading().getRadians() + angularRotationX.getAsDouble()*1.2,
                                           swerveDrive.getOdometryHeading().getRadians(),
                                           swerveDrive.getMaximumChassisVelocity()));
 });
@@ -289,35 +300,36 @@ swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(
         swerveDrive.drive(
         swerveDrive.swerveController.getTargetSpeeds(0,
         0,
-        swerveDrive.getOdometryHeading().getRadians()-(0.1*Math.signum(Vision.angleX-Vision.skew)), 
+        swerveDrive.getOdometryHeading().getRadians()-(0.03*Math.signum(Vision.angleX-Vision.skew)), 
         swerveDrive.getOdometryHeading().getRadians(), 
         swerveDrive.getMaximumChassisVelocity()));
         // SmartDashboard.putString("Align Test 1", "skew");
     }
 
-      else if (MathUtil.applyDeadband(Vision.angleX, 5) != 0){
-        swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(
-        0, -0.02*Math.signum(Vision.angleX-Vision.skew),
-        swerveDrive.getOdometryHeading().getRadians(), 
-        swerveDrive.getOdometryHeading().getRadians(), 
-        swerveDrive.getMaximumChassisVelocity()));
-        // SmartDashboard.putString("Align Test 1", "center");
-      }
 
-      else if (MathUtil.applyDeadband(Vision.distance-distance(), 0.05) != 0){
-        swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(
-        0.02*(Math.signum(Vision.distance-distance())), 0,
-        swerveDrive.getOdometryHeading().getRadians(), 
-        swerveDrive.getOdometryHeading().getRadians(), 
-        swerveDrive.getMaximumChassisVelocity()));
-        // SmartDashboard.putString("Align Test 1", "distance");
-    //   }
+      // else if (MathUtil.applyDeadband(Vision.angleX, 5) != 0){
+      //   swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(
+      //   0, -0.01*Math.signum(Vision.angleX-Vision.skew),
+      //   swerveDrive.getOdometryHeading().getRadians(), 
+      //   swerveDrive.getOdometryHeading().getRadians(), 
+      //   swerveDrive.getMaximumChassisVelocity()));
+      //   // SmartDashboard.putString("Align Test 1", "center");
+      // }
+
+      // else if (MathUtil.applyDeadband(Vision.distance-distance(), 0.05) != 0){
+      //   swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(
+      //   0.01*(Math.signum(Vision.distance-distance())), 0,
+      //   swerveDrive.getOdometryHeading().getRadians(), 
+      //   swerveDrive.getOdometryHeading().getRadians(), 
+      //   swerveDrive.getMaximumChassisVelocity()));
+      //   // SmartDashboard.putString("Align Test 1", "distance");
+      // }
 
     //   else {
     //     swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(0, 0, swerveDrive.getOdometryHeading().getRadians(), swerveDrive.getOdometryHeading().getRadians(), swerveDrive.getMaximumChassisVelocity()));
     //     // SmartDashboard.putString("Align Test 1", "good");
     //   }
-    }
+    // }
     });
   }
    

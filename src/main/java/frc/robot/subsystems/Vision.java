@@ -3,6 +3,10 @@ package frc.robot.subsystems;
 import java.lang.reflect.Array;
 import java.util.Optional;
 
+import org.photonvision.estimation.TargetModel;
+import org.photonvision.simulation.VisionSystemSim;
+import org.photonvision.simulation.VisionTargetSim;
+
 import com.fasterxml.jackson.databind.deser.ValueInstantiator.Gettable;
 import com.fasterxml.jackson.databind.ser.AnyGetterWriter;
 
@@ -11,6 +15,7 @@ import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -58,6 +63,22 @@ public class Vision extends SubsystemBase {
       }
     }
 
+
+
+    
+    // VisionSystemSim visionSim = new VisionSystemSim("main");
+    // TargetModel targetModel = new TargetModel(0.5, 0.25);
+    // Pose3d targetPose = new Pose3d(16, 4, 2, new Rotation3d(0, 0, Math.PI));
+    // VisionTargetSim visionTarget = new VisionTargetSim(targetPose, targetModel);
+
+    public Vision () {
+      
+        // visionSim.addVisionTargets(visionTarget);
+        // AprilTagFieldLayout tagLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
+        // visionSim.addAprilTags(tagLayout);
+        
+        // CameraServer.startAutomaticCapture();
+    }
     public void setFront () {
       distance = frontTable.getDoubleArray(new double[5])[2];
       angleX = front.getEntry("tx").getDouble(0);
@@ -85,6 +106,8 @@ public class Vision extends SubsystemBase {
         this.id = "";
       }
     }
+
+    
 
       /// a thing to select between bothvisions, if seen on both, pick closer
     public void periodic() {

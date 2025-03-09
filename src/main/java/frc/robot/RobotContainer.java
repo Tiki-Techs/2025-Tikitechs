@@ -131,7 +131,8 @@ public class RobotContainer {
     //     () -> 0,
     //     () -> MathUtil.applyDeadband(-m_driverController.getRightX(), ControllerConstants.RIGHT_X_DEADBAND));
 
-    Command autoAlign = drivebase.AlignRight();
+
+    // Command testAutoAnd = drivebase.testAutoAnd();
   /**
    * Use this method to define your trigger->command mappings. Triggers can be created via the
    * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary
@@ -163,7 +164,7 @@ public class RobotContainer {
 
 
 
-    // m_driverController.b().whileTrue(autoAlign); // take out
+    // m_driverController.b().whileTrue(testAutoAnd); // take out
     // m_driverController.x().whileTrue(scaledToggle());  // take out
 
     // m_mechController.rightBumper().whileTrue(m_controller.PIDStop());

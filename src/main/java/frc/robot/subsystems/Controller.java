@@ -2,6 +2,8 @@ package frc.robot.subsystems;
 
 import java.util.Map;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
@@ -23,6 +25,7 @@ public class Controller extends SubsystemBase{
     public boolean isDriving = false;
     public final Timer m_Timer = new Timer();
     public static double time;
+
     // public boolean readyOutput = false;
     // public static double[] elevSafety = {0, 5.58, 9.508, 14.9, 20.27, 25.06, 31.6, 38.31, 39.55, 53.68, 60.44, 74.42, 83.35, 102.3, 109, 240}; 
     // public static double[] armSafety =  {86, 91.6, 95.1, 100.4, 104, 107.8, 113.4, 119.7, 125.4, 129.27, 129.3, 137.3, 139.8, 144, 180, 180.1};
@@ -30,20 +33,20 @@ public class Controller extends SubsystemBase{
     // public static double[] elevSafety2 = {0, 0.0000001, 5.58, 9.508, 14.9, 20.27, 25.06, 31.6, 38.31, 39.55, 53.68, 60.44, 74.42, 83.35, 102.3, 105}; 
     // public static double[] armSafety2 =  {0, 86, 91.6, 95.1, 100.4, 104, 107.8, 113.4, 119.7, 125.4, 129.27, 129.3, 137.3, 139.8, 144, 180};
     
-    public static double[] elevSafetyGI = {0, 45.3, 57.5, 67.0, 76.3, 92.3, 105.4, 116.0, 121.6, 130.0, 133.0, 147.001, 240}; 
+    public static double[] elevSafetyGI = {0, 9.616284, 12.2061, 14.22276, 16.196964, 19.593444, 22.374312, 24.62448, 25.813248, 27.5964, 28.23324, 31.20537228, 1000.9472}; 
     public static double[] armSafetyGI =  {91.0, 91.001, 99.3, 104.9, 108.9, 117.2, 122.6, 128.4, 131.4, 137.2, 147.1, 180, 180.1};
 
-    public static double[] elevSafetyGI2 = {0, 0.001, 56.3, 68.5, 78.0, 87.3, 105.3, 116.4, 127.0, 132.6, 141.0, 144.0, 144.001};
+    public static double[] elevSafetyGI2 = {0, 0.001, 10.951364, 13.54118, 15.55784, 17.532044, 21.353084, 23.709392, 25.95956, 27.148328, 28.93148, 29.56832, 29.56832001};
     public static double[] armSafetyGI2 =  {0, 91.0, 91.001, 99.3, 104.9, 108.9, 117.2, 122.6, 128.4, 131.4, 137.2, 147.1, 180};
 
-    public static double[] elevSafetyBumper = {0, 8.4, 17.2, 28.4, 35.9, 46.7, 63.6, 66.6, 74.4, 84.3, 95.4, 240}; 
+    public static double[] elevSafetyBumper = {0, 1.783152, 3.651216, 6.028752, 7.620852, 9.913476, 13.501008, 14.137848, 15.793632, 17.895204, 20.251512, 1000.9472}; 
     public static double[] armSafetyBumper =  {91.2, 97.6, 102.8, 107.8, 112.0, 115.2, 119.1, 122.1, 127.4, 136.5, 180, 180.1};
 
     // public static double[] elevSafetyBumper2 = {0, 8.4, 17.2, 28.4, 35.9, 46.7, 63.6, 66.6, 74.4, 84.3, 95.4, 95.401};
     // public static double[] armSafetyBumper2 =  {91.2, 97.6, 102.8, 107.8, 112.0, 115.2, 119.1, 122.1, 127.4, 136.5, , 180};
     
 
-    public static double[] elevSafetyBumper2 = {0, 0.001, 8.4, 17.2, 28.4, 35.9, 46.7, 63.6, 66.6, 74.4, 84.3, 84.301};
+    public static double[] elevSafetyBumper2 = {0, 0.001, 1.783152, 3.651216, 6.028752, 7.620852, 9.913476, 13.501008, 14.137848, 15.793632, 17.895204, 17.895204001};
     public static double[] armSafetyBumper2 =  {0, 91.2, 97.6, 102.8, 107.8, 112.0, 115.2, 119.1, 122.1, 127.4, 136.5, 180};
     
 

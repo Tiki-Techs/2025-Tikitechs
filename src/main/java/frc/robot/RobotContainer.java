@@ -24,6 +24,7 @@ import java.io.File;
 import java.util.function.DoubleSupplier;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 
 import edu.wpi.first.math.MathUtil;
@@ -52,8 +53,11 @@ public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   
   public static final SwerveSubsystem drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),"swerve"));
-  public static final Vision m_vision = new Vision();
-  // private final SendableChooser<Command> autoChooser;
+  // public static final Vision m_vision = new Vision();
+  public static boolean scaledToggle = false;
+
+  // MAY CAUSE DELAY IN DEPLOYMENT
+  private final SendableChooser<Command> autoChooser;
   
 
   // Only run these without jack and ruby
@@ -82,9 +86,11 @@ public class RobotContainer {
   public RobotContainer() {
     // Configure the trigger bindings
     configureBindings();
-    // autoChooser = AutoBuilder.buildAutoChooser();
+    // MAY CAUSE DELAY IN DEPLOYMENT
+    autoChooser = AutoBuilder.buildAutoChooser();
+    SmartDashboard.putData(autoChooser);
 
-
+    NamedCommands.registerCommand("Spit", m_groundintake.autoSpit());
 
     // KeyboardAndMouse.getInstance().key("a").onTrue(new InstantCommand( () -> Intake.m_Leader.set(0.3)));
     // autoChooser.setDefaultOption("Mid Auto", AutoBuilder.buildAuto(middleAuto));
@@ -93,30 +99,31 @@ public class RobotContainer {
  
   }
 
-  Command driveFieldOrientedDirectAngle = drivebase.driveCommandF(
-        () -> MathUtil.applyDeadband(-m_driverController.getLeftY(), ControllerConstants.LEFT_Y_DEADBAND),
-        () -> MathUtil.applyDeadband(-m_driverController.getLeftX(), ControllerConstants.LEFT_X_DEADBAND),
-        () -> MathUtil.applyDeadband(-m_driverController.getRightX(), 0.15),
-        // () -> 0,
-        () -> MathUtil.applyDeadband(-m_driverController.getRightY(), 0.15));
-
     Command driveFieldOrientedAnglularVelocity = drivebase.driveCommandF(
         () -> MathUtil.applyDeadband(-m_driverController.getLeftY(), ControllerConstants.LEFT_Y_DEADBAND),
         () -> MathUtil.applyDeadband(-m_driverController.getLeftX(), ControllerConstants.LEFT_X_DEADBAND),
         () -> MathUtil.applyDeadband(-m_driverController.getRightX(), ControllerConstants.RIGHT_X_DEADBAND));
+
+    Command driveFieldOrientedAnglularVelocityScaledDown = drivebase.driveCommandF(
+        () -> MathUtil.applyDeadband(-m_driverController.getLeftY(), ControllerConstants.LEFT_Y_DEADBAND),
+        () -> MathUtil.applyDeadband(-m_driverController.getLeftX(), ControllerConstants.LEFT_X_DEADBAND),
+        () -> MathUtil.applyDeadband(-m_driverController.getRightX(), ControllerConstants.RIGHT_X_DEADBAND));
+
+    public Command scaledToggle() {
+      scaledToggle = !scaledToggle;
+      if (scaledToggle) {
+        return driveFieldOrientedAnglularVelocityScaledDown;
+      }
+      else {
+        return driveFieldOrientedAnglularVelocity;
+      }
+    }
         
     Command robotOrientedAngularVelocity = drivebase.driveCommandR(
       () -> MathUtil.applyDeadband(-m_driverController.getLeftY(), ControllerConstants.LEFT_Y_DEADBAND),
       () -> MathUtil.applyDeadband(-m_driverController.getLeftX(), ControllerConstants.LEFT_X_DEADBAND),
       () -> MathUtil.applyDeadband(-m_driverController.getRightX(), ControllerConstants.RIGHT_X_DEADBAND));
       
-    Command robotOrientedDirectAngle = drivebase.driveCommandF(
-        () -> MathUtil.applyDeadband(-m_driverController.getLeftY(), ControllerConstants.LEFT_Y_DEADBAND),
-        () -> MathUtil.applyDeadband(-m_driverController.getLeftX(), ControllerConstants.LEFT_X_DEADBAND),
-        () -> MathUtil.applyDeadband(-m_driverController.getRightX(), 0.15),
-        // () -> 0,
-        () -> MathUtil.applyDeadband(-m_driverController.getRightY(), 0.15));
-
     Command stopDrive = drivebase.stopDrive();
     Command zeroGyro = drivebase.zeroGyro();
     // Command driveFieldOrientedAnglularVelocity = drivebase.driveCommand(
@@ -124,7 +131,7 @@ public class RobotContainer {
     //     () -> 0,
     //     () -> MathUtil.applyDeadband(-m_driverController.getRightX(), ControllerConstants.RIGHT_X_DEADBAND));
 
-    Command autoAlign = drivebase.AlignTest();
+    Command autoAlign = drivebase.AlignRight();
   /**
    * Use this method to define your trigger->command mappings. Triggers can be created via the
    * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary
@@ -139,12 +146,26 @@ public class RobotContainer {
     drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
     m_driverController.a().whileTrue(zeroGyro);
     m_mechController.a().whileTrue(m_groundintake.haveSwitch());
+
+
     // m_mechController.b().whileTrue(m_groundintake.off());
-    m_mechController.x().whileTrue(m_controller.setpoint(-180, 139));
-    m_mechController.y().whileTrue(m_controller.setpoint(-46, 229));
-    m_mechController.b().whileTrue(m_controller.setpoint(-37.4, 100));
+    // m_mechController.x().whileTrue(m_controller.setpoint(-180, 139));
+    m_mechController.y().whileTrue(m_controller.setpoint(-38, 47.6)); // l4
+    m_mechController.b().whileTrue(m_controller.setpoint(-31, 19.4)); // l3
+    // l2: -27 and 4.3
     // m_mechController.povUp().whileTrue(m_controller.handoff());
-    m_driverController.b().whileTrue(autoAlign);
+
+
+
+    m_mechController.povUp().onTrue(m_groundintake.l1CommandTrue());  // take out
+    m_mechController.povUp().onFalse(m_groundintake.l1CommandFalse());
+
+
+
+
+    // m_driverController.b().whileTrue(autoAlign); // take out
+    // m_driverController.x().whileTrue(scaledToggle());  // take out
+
     // m_mechController.rightBumper().whileTrue(m_controller.PIDStop());
     // m_mechController.a().whileTrue(m_groundintake.intake());
     // m_mechController.y().whileTrue(m_groundintake.groundIntakeHas());
@@ -174,8 +195,8 @@ public class RobotContainer {
    // providing auto path from pathplanner
   public Command getAutonomousCommand() {
  
-    // return new PathPlannerAuto("Test");
-    return null;
+    return autoChooser.getSelected();
+    // return null;
   }
 
   public void periodic(){

@@ -30,7 +30,7 @@ public class Elevator extends SubsystemBase{
     DigitalInput upperLimitSwitch = new DigitalInput(2);
     public double canDown;
     public double canUp;
-    public PIDController pid = new PIDController(0.025, 0, 0);
+    public PIDController pid = new PIDController(0.07, 0, 0);
     public DutyCycleEncoder degEncoder = new DutyCycleEncoder(0);
     private final LinearInterpolator interpolator = new LinearInterpolator();
     private PolynomialSplineFunction m_elevInterpolatorGI;
@@ -40,64 +40,65 @@ public class Elevator extends SubsystemBase{
     public double setpoint;
     public boolean tryRumble;
     public boolean readyRumble;
-    public double test1 = 60;
-    public double test2 = 100;
-    public static double down = 140;
+    public static double down = 29.7192;
     public static boolean there = false;
     public double up;
-    public double groundIntakeLevel = 51; // change later
-    public double elevarmground = 144;
+    public double groundIntakeLevel = 13.6754; // change later
+    public double elevarmground = 32.9034;
+    public static double gearRatio = 37.8;
+    public static double gearCoeff = (1.756*Math.PI*2)/gearRatio;
     
-    public double aSDHUAWDUJHAOSDJUHWODIntakeLevel = 163; // change later
-
-    public double tol = 3;
-    public double tol2 = 3;
-    public double speed;
-    public double top = 100;
-    public double bottom = 30;
-
-    public Elevator(){
-        m_Follower.setControl(follower);
-        setpoint = getRotation();
-        double[] elevGI = Controller.elevSafetyGI2;
-        double[] armGI = Controller.armSafetyGI2;
         
-        double[] elevBumper = Controller.elevSafetyBumper2;
-        double[] armBumper = Controller.armSafetyBumper2;
-        m_elevInterpolatorGI = interpolator.interpolate(armGI, elevGI);
-        m_elevInterpolatorBumper = interpolator.interpolate(armBumper, elevBumper);
-    }
-
-    public double getRotation(){
-        return m_Leader.getPosition().getValueAsDouble();
-    }
-
-    public void kill () {
-        m_Leader.set(0);
-    }
-
-    public void setpoint(double setpoint){
-        this.setpoint = setpoint;
-    }
-
-    public void tryRumble(boolean rumble){
-        this.tryRumble = rumble;
-    }
+        public double aSDHUAWDUJHAOSDJUHWODIntakeLevel = 34.60164; // change later
     
-    // Transforms setpoint into motor turns.
-    public double transform (double val) {
-        return (val-12.5)/0.209653;
+        public double tol = 0.63684;
+        public double tol2 = 0.63684;
+        public double speed;
+    
+        public Elevator(){
+            m_Follower.setControl(follower);
+            setpoint = antiTransform(getRotation());
+            double[] elevGI = Controller.elevSafetyGI2;
+            double[] armGI = Controller.armSafetyGI2;
+            
+            double[] elevBumper = Controller.elevSafetyBumper2;
+            double[] armBumper = Controller.armSafetyBumper2;
+            m_elevInterpolatorGI = interpolator.interpolate(armGI, elevGI);
+            m_elevInterpolatorBumper = interpolator.interpolate(armBumper, elevBumper);
+        }
+    
+        public double getRotation(){
+            return m_Leader.getPosition().getValueAsDouble();
+        }
+    
+        public void kill () {
+            m_Leader.set(0);
+        }
+    
+        public void setpoint(double setpoint){
+            this.setpoint = setpoint;
+        }
+    
+        public void tryRumble(boolean rumble){
+            this.tryRumble = rumble;
+        }
+        
+        // Transforms setpoint into motor turns.
+        public double transform (double val) {
+            return (val)/gearCoeff;
     }
 
-        // Transforms setpoint into motor turns.
+        // Transforms motor turns into setpoint.
     public double antiTransform (double val) {
-        return (val*0.209653)+12.5;
+        return (val*gearCoeff);
     }
+
+    // x = (1.756*pi*2)/gearratio
 
 
     @Override
     public void periodic(){
-        encoderValue = getRotation();
+        encoderValue = antiTransform(getRotation());
         // SmartDashboard.putNumber("safety elev", encoderValue);
         // If upper limit switch is not hit, canDown is 1. If lower is not hit, canUp is 1.
         // SmartDashboard.putNumber("elevator value", m_elevInterpolator.value(Math.abs(RobotContainer.m_arm.realEncoderValue)));
@@ -112,8 +113,9 @@ public class Elevator extends SubsystemBase{
         }
         if ((!upperLimitSwitch.get())){
             canUp = 0;
-            m_Leader.setPosition(229); // CHECK VALUE........
-            setpoint = m_Leader.getPosition().getValueAsDouble();
+            m_Leader.setPosition(transform(48.61212)); // CHECK VALUE........
+            setpoint = antiTransform(m_Leader.getPosition().getValueAsDouble());
+            encoderValue = antiTransform(getRotation());
         }
         else {
             canUp = 1;
@@ -123,7 +125,7 @@ public class Elevator extends SubsystemBase{
         }
         // SmartDashboard.putNumber("elevtest1", m_elevInterpolator.value(Math.abs(RobotContainer.m_arm.realEncoderValue)));
 
-        if (((RobotContainer.m_groundintake.clearArm) && (encoderValue < m_elevInterpolatorBumper.value(Math.abs(RobotContainer.m_arm.realEncoderValue)))) || ((!RobotContainer.m_groundintake.clearArm) && (encoderValue < m_elevInterpolatorGI.value(Math.abs(RobotContainer.m_arm.realEncoderValue))))) {
+        if (((!RobotContainer.m_groundintake.clearArm) && (encoderValue < m_elevInterpolatorBumper.value(Math.abs(RobotContainer.m_arm.realEncoderValue)))) || ((!RobotContainer.m_groundintake.clearArm) && (encoderValue < m_elevInterpolatorGI.value(Math.abs(RobotContainer.m_arm.realEncoderValue))))) {
             canDown = 0;
         }
         
@@ -169,7 +171,7 @@ public class Elevator extends SubsystemBase{
 
         SmartDashboard.putNumber("(Elevator) CanUp", canUp);
         SmartDashboard.putNumber("(Elevator) CanDown", canDown);
-        SmartDashboard.putNumber("(Elevator) True encoder value", encoderValue);
+        SmartDashboard.putNumber("(Elevator) True inch encoder value", encoderValue);
         SmartDashboard.putNumber("(Elevator) True setpoint elev", setpoint);
     }
 }

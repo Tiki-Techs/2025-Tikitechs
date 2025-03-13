@@ -29,9 +29,12 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.units.DistanceUnit;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.math.util.Units;
@@ -41,25 +44,32 @@ import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
 import swervelib.SwerveDrive;
 import swervelib.math.SwerveMath;
+import swervelib.parser.SwerveModuleConfiguration;
 import swervelib.parser.SwerveParser;
 import swervelib.telemetry.SwerveDriveTelemetry;
 import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
 
 public class SwerveSubsystem extends SubsystemBase{
-    private SwerveDrive swerveDrive;
+    public SwerveDrive swerveDrive;
+    private static SwerveSubsystem instance;
     private final Field2d m_field = new Field2d();
+    
+    private final Field2d m_fieldEstimated = new Field2d();
     // double maximumSpeed = Units.feetToMeters(25);
+    // double maximumSpeed = Units.feetToMeters(17.1);
+    
     double maximumSpeed = Units.feetToMeters(17.1);
-    public static double visDist = 0.4;    public static final AprilTagFieldLayout fieldLayout                     = AprilTagFieldLayout.loadField(      AprilTagFields.k2025ReefscapeWelded);
-
+    public static double visDist = 0.4;    
     Map<String, Double> visionDistances = Map.of(
             "Coral Feeder", 0.5,
             "Algae Processor", 0.6,
@@ -71,7 +81,28 @@ public class SwerveSubsystem extends SubsystemBase{
     public PIDController angleXPID = new PIDController(0.05, 0, 0.000); // TUNE PID
     public PIDController distancePID = new PIDController(0.065, 0, 0.000); // TUNE PID
     public double driveCoeff = 1;
-    double tag = -123912;
+    double tag = -124912;
+    Pose3d robotPose = new Pose3d();
+    Pose2d estimatedRobotPose = new Pose2d();
+// Pose3d poseB = new Pose3d();
+StructPublisher<Pose3d> publisher = NetworkTableInstance.getDefault()
+  .getStructTopic("MyPose", Pose3d.struct).publish();
+
+  
+StructPublisher<Pose3d> publisherTogether = NetworkTableInstance.getDefault()
+.getStructTopic("MyPoseTogether", Pose3d.struct).publish();
+  
+StructPublisher<Pose3d> publisherEst = NetworkTableInstance.getDefault()
+.getStructTopic("MyPoseEst", Pose3d.struct).publish();
+StructArrayPublisher<Pose3d> arrayPublisher = NetworkTableInstance.getDefault()
+  .getStructArrayTopic("MyPoseArray", Pose3d.struct).publish();
+
+    public static final AprilTagFieldLayout fieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
+
+    // public static SwerveSubsystem getInstance() {
+    //   if (instance == null) instance = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),"swerve"));
+    //   return instance;
+    // }
 
     // File swerveJsonDirectory = new File(Filesystem.getDeployDirectory(),"swerve");
     public SwerveSubsystem(File directory){
@@ -87,7 +118,9 @@ public class SwerveSubsystem extends SubsystemBase{
         }
         // Do this in either robot or subsystem init
         SmartDashboard.putData("Field", m_field);
-        swerveDrive.resetOdometry(new Pose2d(8.12, 5.81, new Rotation2d()));
+        swerveDrive.resetOdometry(new Pose2d(5, 7, new Rotation2d()));
+        // swerveDrive.resetOdometry(new Pose2d(8.12, 5.81, new Rotation2d()));
+        swerveDrive.setMaximumAllowableSpeeds(3, 3);
     // Load the RobotConfig from the GUI settings. You should probably
     // store this in your Constants file
    
@@ -110,8 +143,8 @@ public class SwerveSubsystem extends SubsystemBase{
     },
       // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
       new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic drive trains
-              new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants
-              new PIDConstants(5.0, 0.0, 0.0) // Rotation PID constants
+              new PIDConstants(0.05, 0.0, 0.0), // Translation PID constants
+              new PIDConstants(0.05, 0.0, 0.0) // Rotation PID constants
       ),
  
       Constants.robotConfig, // The robot configuration
@@ -130,10 +163,24 @@ public class SwerveSubsystem extends SubsystemBase{
       this // Reference to this subsystem to set requirements
 );
     }
+
+    public SwerveDriveKinematics getKinematics(){
+      return swerveDrive.kinematics;
+    }
+
+    public Rotation2d getYaw() {
+      return swerveDrive.getYaw();
+    }
+
+    public SwerveModulePosition[] getSwerveModulePositions() {
+      return swerveDrive.getModulePositions();
+    }
         
     public Pose2d getPose(){
       return swerveDrive.getPose();
     }
+
+
     public ChassisSpeeds getRobotRelativeSpeeds(){
       return swerveDrive.getRobotVelocity();
       // HolonomicDriveController m_a = 
@@ -145,6 +192,7 @@ public class SwerveSubsystem extends SubsystemBase{
 
     public void resetOdometry(Pose2d initialHolonomicPose) {
       swerveDrive.resetOdometry(initialHolonomicPose); 
+      
     }
 
     
@@ -181,7 +229,7 @@ Translation2d scaledInputs = SwerveMath.scaleTranslation(new Translation2d(trans
 swerveDrive.driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(
                                           scaledInputs.getX(), 
                                           scaledInputs.getY(),
-                                          swerveDrive.getOdometryHeading().getRadians() + angularRotationX.getAsDouble()*0.8,
+                                          swerveDrive.getOdometryHeading().getRadians() + angularRotationX.getAsDouble()*1.4,
                                           swerveDrive.getOdometryHeading().getRadians(),
                                           swerveDrive.getMaximumChassisVelocity()));
 });
@@ -216,9 +264,9 @@ Translation2d scaledInputs = SwerveMath.scaleTranslation(new Translation2d(trans
 
 // Make the robot move
 swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(
-                                          scaledInputs.getX(), 
-                                          scaledInputs.getY(),
-                                          swerveDrive.getOdometryHeading().getRadians() + angularRotationX.getAsDouble()*3.14,
+                                          scaledInputs.getX()*0.15, 
+                                          scaledInputs.getY()*0.15,
+                                          swerveDrive.getOdometryHeading().getRadians() + angularRotationX.getAsDouble()*0.15,
                                           swerveDrive.getOdometryHeading().getRadians(),
                                           swerveDrive.getMaximumChassisVelocity()));
 });
@@ -237,167 +285,251 @@ swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(
 
     return driveCoeff;
   }
-   
-Pose3d robotPose = new Pose3d();
-// Pose3d poseB = new Pose3d();
-StructPublisher<Pose3d> publisher = NetworkTableInstance.getDefault()
-  .getStructTopic("MyPose", Pose3d.struct).publish();
-StructArrayPublisher<Pose3d> arrayPublisher = NetworkTableInstance.getDefault()
-  .getStructArrayTopic("MyPoseArray", Pose3d.struct).publish();
 
 
+public Pose3d getRobotPose() {
+  return robotPose;
+}
 
-// public Command testAutoAnd(){
-//   PathConstraints constraints = new PathConstraints(
-//         3.0, 4.0,
-//         Units.degreesToRadians(540), Units.degreesToRadians(720));
+public int together() {
+  int tg = closestTag();
+  if (tg != 0) {
+    SmartDashboard.putNumber("tg 0", tg);
+    return 1;
+  }
+  else {
+    return 0;
+  }
+}
 
-// // Since AutoBuilder is configured, we can use it to build pathfinding commands
-// // PathPlannerPath path = PathPlannerPath.
-// return AutoBuilder.pathfindToPose(
+public Command testAutoAnd1(){
+  PathConstraints constraints = new PathConstraints(
+        3.0, 4.0,
+        Units.degreesToRadians(540), Units.degreesToRadians(720));
+
+// Since AutoBuilder is configured, we can use it to build pathfinding commands
+// PathPlannerPath path = PathPlannerPath.
+  
+return AutoBuilder.pathfindToPose(
         
-//   getReefPose(1, 0),
-//         constraints);
-//   // return null;
-// }
-
-//     public double getDistanceFromAprilTag(int id) {
-//       Optional<Pose3d> tag = fieldLayout.getTagPose(id);
-//       return tag.map(pose3d -> PhotonUtils.getDistanceToPose(robotPose.toPose2d(), pose3d.toPose2d())).orElse(1000.0);
-//     }
-
-//   //   public int closestTag() {
-//   //   boolean tempVisionTest = DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Red;
-//   //   double lowest = 1000;
-//   //   if (tempVisionTest) {
-//   //     for (int i = 0; i < 6; i++) {
-//   //       if (getDistanceFromAprilTag(i+6) < lowest) {
-//   //         lowest = getDistanceFromAprilTag(i+6);
-//   //         tag = i+6;
-//   //         SmartDashboard.putNumber("closest id", tag);
-//   //       }
-//   //     }
-//   //   }
-//   //   else {
-//   //     for (int i = 0; i < 6; i++) {
-//   //       if (getDistanceFromAprilTag(i+17) < lowest) {
-//   //         lowest = getDistanceFromAprilTag(i+17);
-//   //         tag = i+17;
-//   //         SmartDashboard.putNumber("closest id", tag);
-//   //       }
-//   //     }
-//   //   }
-//   //   return (int)tag;
-//   // }
-
-// // Pose at midpoint between tags 18 and 21 (which are opposite on blue reef)
-// private static final Translation2d REEF_CENTER_BLUE = fieldLayout.getTagPose(18).get().toPose2d().getTranslation()
-//     .plus(fieldLayout.getTagPose(21).get().toPose2d().getTranslation()).div(2);
-
-// // Pose at midpoint between tags 10 and 7 (which are opposite on red reef)
-// private static final Translation2d REEF_CENTER_RED = fieldLayout.getTagPose(10).get().toPose2d().getTranslation()
-//     .plus(fieldLayout.getTagPose(7).get().toPose2d().getTranslation()).div(2);
-
-// private static boolean flipToRed; // whether to use red reef (otherwise blue)
-
-// // Distance from center of robot to center of reef
+  getReefPose(0, 0),
+        constraints);
+}
 
 
-// public static final Distance DISTANCE_TO_REEF = Inches.of(29 / 2).plus(Inches.of(4)); // 4 is bumper thickness
+public Command testAutoAnd2(){
+  PathConstraints constraints = new PathConstraints(
+        3.0, 4.0,
+        Units.degreesToRadians(540), Units.degreesToRadians(720));
+
+// Since AutoBuilder is configured, we can use it to build pathfinding commands
+// PathPlannerPath path = PathPlannerPath.
+  
+return AutoBuilder.pathfindToPose(
+        
+  getReefPose(1, 0),
+        constraints);
+}
 
 
-// // Found by taking distance from tag 18 to center and adding offset from reef
-// private static final Distance REEF_APOTHEM = Meters.of(
-//         fieldLayout.getTagPose(18).get().toPose2d().getTranslation().getDistance(REEF_CENTER_BLUE))
-//         .plus(DISTANCE_TO_REEF);
+public Command testAutoAnd3(){
+  PathConstraints constraints = new PathConstraints(
+        3.0, 4.0,
+        Units.degreesToRadians(540), Units.degreesToRadians(720));
 
-// // translation to move from centered on a side to scoring position for the left branch
-// private static final Translation2d CENTERED_TO_LEFT_BRANCH = new Translation2d(Meters.of(0),
-//         Inches.of(12.94 / 2));
-
-// /**
-//  * Calculates the pose of the robot for scoring on a branch or trough.
-//  *
-//  * @param side The side of the reef (0 for left, increases clockwise).
-//  * @param relativePos The relative position on the reef (-1 for right branch, 0 for center, 1 for left branch).
-//  * @return The calculated Pose2d for scoring.
-//  */
-// public static Pose2d getReefPose(int side, int relativePos) {
-//     // determine whether to use red or blue reef position
-//     flipToRed = DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Red;
-
-//     // initially do all calculations from blue, then flip later
-//     Translation2d reefCenter = REEF_CENTER_BLUE;
-
-//     // robot position centered on close reef side
-//     Translation2d translation = reefCenter.plus(new Translation2d(REEF_APOTHEM.unaryMinus(), Meters.zero()));
-//     // translate to correct branch (left, right, center)
-//     translation = translation.plus(CENTERED_TO_LEFT_BRANCH.times(relativePos));
-//     // rotate to correct side
-//     translation = translation.rotateAround(reefCenter, Rotation2d.fromDegrees(-60 * side));
-
-//     // make pose from translation and correct rotation
-//     Pose2d reefPose = new Pose2d(translation,
-//             Rotation2d.fromDegrees(-60 * side));
-
-//     if (flipToRed) {
-//         reefPose = flipPose(reefPose);
-//     }
-
-//     return reefPose;
-// }
-
-// private static Pose2d flipPose(Pose2d pose) {
-//     Translation2d center = REEF_CENTER_BLUE.interpolate(REEF_CENTER_RED, 0.5);
-//     Translation2d poseTranslation = pose.getTranslation();
-//     poseTranslation = poseTranslation.rotateAround(center, Rotation2d.k180deg);
-//     return new Pose2d(poseTranslation, pose.getRotation().rotateBy(Rotation2d.k180deg));
-// }
+// Since AutoBuilder is configured, we can use it to build pathfinding commands
+// PathPlannerPath path = PathPlannerPath.
+  
+return AutoBuilder.pathfindToPose(
+        
+  getReefPose(2, 0),
+        constraints);
+}
 
 
+public Command testAutoAnd4(){
+  PathConstraints constraints = new PathConstraints(
+        3.0, 4.0,
+        Units.degreesToRadians(540), Units.degreesToRadians(720));
+
+// Since AutoBuilder is configured, we can use it to build pathfinding commands
+// PathPlannerPath path = PathPlannerPath.
+  
+return AutoBuilder.pathfindToPose(
+        
+  getReefPose(3, 0),
+        constraints);
+}
+
+
+public Command testAutoAnd5(){
+  PathConstraints constraints = new PathConstraints(
+        3.0, 4.0,
+        Units.degreesToRadians(540), Units.degreesToRadians(720));
+
+// Since AutoBuilder is configured, we can use it to build pathfinding commands
+// PathPlannerPath path = PathPlannerPath.
+  
+return AutoBuilder.pathfindToPose(
+        
+  getReefPose(4, 0),
+        constraints);
+}
+
+
+public Command testAutoAnd6(){
+  PathConstraints constraints = new PathConstraints(
+        3.0, 4.0,
+        Units.degreesToRadians(540), Units.degreesToRadians(720));
+
+// Since AutoBuilder is configured, we can use it to build pathfinding commands
+// PathPlannerPath path = PathPlannerPath.
+  
+return AutoBuilder.pathfindToPose(
+        
+  getReefPose(5, 0),
+        constraints);
+}
+
+    public double getDistanceFromAprilTag(int id) {
+      Optional<Pose3d> tag = fieldLayout.getTagPose(id);
+      return tag.map(pose3d -> PhotonUtils.getDistanceToPose(robotPose.toPose2d(), pose3d.toPose2d())).orElse(1000.0);
+    }
+
+    public int closestTag() {
+    boolean tempVisionTest = DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Red;
+    double lowest = 1000;
+    if (tempVisionTest) {
+      for (int i = 0; i < 6; i++) {
+        if (getDistanceFromAprilTag(i+6) < lowest) {
+          lowest = getDistanceFromAprilTag(i+6);
+          tag = i+6;
+          SmartDashboard.putNumber("closest id", tag);
+        }
+      }
+    }
+    else {
+      for (int i = 0; i < 6; i++) {
+        if (getDistanceFromAprilTag(i+17) < lowest) {
+          lowest = getDistanceFromAprilTag(i+17);
+          tag = (i+17)%6;
+          SmartDashboard.putNumber("closest id", tag);
+        }
+      }
+    }
+    return (int)tag;
+  }
+
+  public Command pt1() {
+    
+        return new InstantCommand(
+                () -> {
+    SmartDashboard.putNumber("pt1", tag);
+                }, this);
+  }
+
+
+// Pose at midpoint between tags 18 and 21 (which are opposite on blue reef)
+private static final Translation2d REEF_CENTER_BLUE = fieldLayout.getTagPose(18).get().toPose2d().getTranslation()
+    .plus(fieldLayout.getTagPose(21).get().toPose2d().getTranslation()).div(2);
+
+// Pose at midpoint between tags 10 and 7 (which are opposite on red reef)
+private static final Translation2d REEF_CENTER_RED = fieldLayout.getTagPose(10).get().toPose2d().getTranslation()
+    .plus(fieldLayout.getTagPose(7).get().toPose2d().getTranslation()).div(2);
+
+private static boolean flipToRed; // whether to use red reef (otherwise blue)
+
+// Distance from center of robot to center of reef
+
+
+public static final Distance DISTANCE_TO_REEF = Inches.of(29 / 2).plus(Inches.of(4)); // 4 is bumper thickness
+
+
+// Found by taking distance from tag 18 to center and adding offset from reef
+private static final Distance REEF_APOTHEM = Meters.of(
+        fieldLayout.getTagPose(18).get().toPose2d().getTranslation().getDistance(REEF_CENTER_BLUE))
+        .plus(DISTANCE_TO_REEF);
+
+// translation to move from centered on a side to scoring position for the left branch
+private static final Translation2d CENTERED_TO_LEFT_BRANCH = new Translation2d(Meters.of(0),
+        Inches.of(12.94 / 2));
+
+/**
+ * Calculates the pose of the robot for scoring on a branch or trough.
+ *
+ * @param side The side of the reef (0 for left, increases clockwise).
+ * @param relativePos The relative position on the reef (-1 for right branch, 0 for center, 1 for left branch).
+ * @return The calculated Pose2d for scoring.
+ */
+public static Pose2d getReefPose(int side, int relativePos) {
+    // determine whether to use red or blue reef position
+    flipToRed = DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Red;
+
+    // initially do all calculations from blue, then flip later
+    Translation2d reefCenter = REEF_CENTER_BLUE;
+
+    // robot position centered on close reef side
+    Translation2d translation = reefCenter.plus(new Translation2d(REEF_APOTHEM.unaryMinus(), Meters.zero()));
+    // translate to correct branch (left, right, center)
+    translation = translation.plus(CENTERED_TO_LEFT_BRANCH.times(relativePos));
+    // rotate to correct side
+    translation = translation.rotateAround(reefCenter, Rotation2d.fromDegrees(-60 * side));
+
+    // make pose from translation and correct rotation
+    Pose2d reefPose = new Pose2d(translation,
+            Rotation2d.fromDegrees(-60 * side));
+
+    if (flipToRed) {
+        reefPose = flipPose(reefPose);
+    }
+
+    return reefPose;
+}
+
+private static Pose2d flipPose(Pose2d pose) {
+    Translation2d center = REEF_CENTER_BLUE.interpolate(REEF_CENTER_RED, 0.5);
+    Translation2d poseTranslation = pose.getTranslation();
+    poseTranslation = poseTranslation.rotateAround(center, Rotation2d.k180deg);
+    return new Pose2d(poseTranslation, pose.getRotation().rotateBy(Rotation2d.k180deg));
+}
 
 
 
+public Pose3d pose2D3D (Pose2d pose2d) {
+        return new Pose3d(
+            new Translation3d(pose2d.getX(), pose2d.getY(), 0), // Assume 0 height (Z)
+            new Rotation3d(0, 0, pose2d.getRotation().getRadians()) // Only rotate around Z
+        );
+    }
 
-
-
+public Rotation3d rot2D3D(Rotation2d rot2d) {
+  return new Rotation3d(0, 0, rot2d.getDegrees());
+}
 
 
 
 @Override
 public void periodic(){
     swerveDrive.updateOdometry();
-    robotPose = new Pose3d(
-        swerveDrive.getPose().getX(),
-        swerveDrive.getPose().getY(),
-        0,
-        swerveDrive.getGyroRotation3d()
+    // robotPose = new Pose3d(
+    //     RobotContainer.poseEstimator.getPosition().getX(),
+    //     RobotContainer.poseEstimator.getPosition().getY(),
+    //     0,
+    //     rot2D3D(RobotContainer.poseEstimator.getPosition().getRotation())
         
-    );
+    // );
+    robotPose = new Pose3d(swerveDrive.getPose().getX(), swerveDrive.getPose().getY(), 0, swerveDrive.getGyroRotation3d());
     
-    // boolean tempVisionTest = DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Red;
-    // double lowest = 1000;
-    // if (tempVisionTest) {
-    //   for (int i = 0; i < 6; i++) {
-    //     if (getDistanceFromAprilTag(i+6) < lowest) {
-    //       lowest = getDistanceFromAprilTag(i+6);
-    //       tag = i-7;
-    //       SmartDashboard.putNumber("closest id", tag);
-    //     }
-    //   }
-    // }
-    // else {
-    //   for (int i = 0; i < 6; i++) {
-    //     if (getDistanceFromAprilTag(i+17) < lowest) {
-    //       lowest = getDistanceFromAprilTag(i+17);
-    //       tag = i-7;
-    //       SmartDashboard.putNumber("closest id", tag);
-    //     }
-    //   }
-    // }
-  
+    // estimatedRobotPose = PoseEstimator.getInstance().getPosition();
+    
+    // estimatedRobotPose = PoseEstimator.getInstance().getEstimatedPose();
+    // estimatedRobotPose = RobotContainer.pe.getPosition();
+    
     // Publish the updated pose
-    publisher.set(robotPose);
+    publisher.set(pose2D3D(swerveDrive.getPose()));
+    // publisherEst.set(pose2D3D(estimatedRobotPose));
+    // publisherTogether.set(pose2D3D(swerveDrive.getPose()));
+    
     SmartDashboard.putNumber("Encoder Back Left", swerveDrive.getModules()[2].getAbsoluteEncoder().getAbsolutePosition());
     SmartDashboard.putNumber("Encoder Front Right", swerveDrive.getModules()[1].getAbsoluteEncoder().getAbsolutePosition());
     SmartDashboard.putNumber("Encoder Front Left", swerveDrive.getModules()[0].getAbsoluteEncoder().getAbsolutePosition());
@@ -407,7 +539,8 @@ public void periodic(){
     // SmartDashboard.putNumber("Odometry", swerveDrive.getOdometryHeading().getDegrees());
     // SmartDashboard.putNumber("gyro test", swerveDrive.getGyroRotation3d().getAngle());
     m_field.setRobotPose(swerveDrive.getPose());
-    
+    m_fieldEstimated.setRobotPose(estimatedRobotPose);
+    // m_field.setRobotPose(estimatedRobotPose);
     // SmartDashboard.putNumber("map test", distance());
     // SmartDashboard.putBoolean("Drive Toggle", RobotContainer.scaledToggle);
     }

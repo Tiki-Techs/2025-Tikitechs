@@ -81,6 +81,7 @@ public class Controller extends SubsystemBase{
     public Command setpointArmDown(){
         return new InstantCommand(
                 () -> {
+
                     arm.setpoint(arm.down);
                     rumble(true);
                 }, this);
@@ -96,6 +97,16 @@ public class Controller extends SubsystemBase{
 
     }
 
+    public void setpointElevatorArmElevator(double elevatorPoint, double armPoint, double elevatorPoint2){
+                    elevator.setpoint(elevatorPoint);
+                    arm.setpoint(armPoint);
+                    if (arm.there) {
+                        elevator.setpoint(elevatorPoint2);
+                    }
+                    // rumble(true);
+    }
+
+
     public Command setpoint(double armPoint, double elevatorPoint){
         return new InstantCommand(
                 () -> {
@@ -109,12 +120,32 @@ public class Controller extends SubsystemBase{
     public Command handoff(){
         return new InstantCommand(
                 () -> {
-                    m_Timer.start();
+                    if (RobotContainer.m_groundintake.getHave()) {
+                    // setpoint(-180, elevator.elevarmground);
+                    if (elevator.encoderValue >= elevator.elevarmground) {
+                        arm.setpoint(-180);
+                        elevator.setpoint(elevator.elevarmground);
+                    }
+                    else {       
+                        setpointElevatorArmElevator(elevator.elevarmground+8.5, -180, elevator.elevarmground);
+                    }
                     Intake.handoff = true;
                     GroundIntake.handoff = true;
+                    }
                 }, this);
 
     }
+
+    
+    public Command handoffFalse(){
+        return new InstantCommand(
+                () -> {
+                    Intake.handoff = false;
+                    GroundIntake.handoff = false;
+                }, this);
+
+    }
+
 
     // public Command pickup(){
     //     return new InstantCommand(

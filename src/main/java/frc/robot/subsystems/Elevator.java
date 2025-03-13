@@ -43,16 +43,16 @@ public class Elevator extends SubsystemBase{
     public static double down = 29.7192;
     public static boolean there = false;
     public double up;
-    public double groundIntakeLevel = 13.6754; // change later
-    public double elevarmground = 32.9034;
+    public double groundIntakeLevel = 16.6754; // change later
+    public double elevarmground = 30.4534;
     public static double gearRatio = 37.8;
     public static double gearCoeff = (1.756*Math.PI*2)/gearRatio;
     
         
         public double aSDHUAWDUJHAOSDJUHWODIntakeLevel = 34.60164; // change later
     
-        public double tol = 0.63684;
-        public double tol2 = 0.63684;
+        public double tol = 0.10684;
+        public double tol2 = 0.10684;
         public double speed;
     
         public Elevator(){
@@ -105,17 +105,17 @@ public class Elevator extends SubsystemBase{
         if ((!lowerLimitSwitch.get())
         ){ // ZERO ENCODERS AND WHATNOT, NEED TO ACCOUNT FOR ENCODER OFFSET THINGY IN OTHER PARTS OF THE CODE
             canDown = 0;
-            m_Leader.setPosition(0); // CONSIDER SLIGHTLY HIGHER THAN ZERO (THE VALUE AS SOON AS WE TOUCH THE SWITCH)
-            setpoint = m_Leader.getPosition().getValueAsDouble();
+            // m_Leader.setPosition(0); // CONSIDER SLIGHTLY HIGHER THAN ZERO (THE VALUE AS SOON AS WE TOUCH THE SWITCH)
+            // setpoint = m_Leader.getPosition().getValueAsDouble();
         }
         else {
             canDown = 1;
         }
         if ((!upperLimitSwitch.get())){
             canUp = 0;
-            m_Leader.setPosition(transform(48.61212)); // CHECK VALUE........
-            setpoint = antiTransform(m_Leader.getPosition().getValueAsDouble());
-            encoderValue = antiTransform(getRotation());
+            // m_Leader.setPosition(transform(48.61212)); // CHECK VALUE........
+            // setpoint = antiTransform(m_Leader.getPosition().getValueAsDouble());
+            // encoderValue = antiTransform(getRotation());
         }
         else {
             canUp = 1;
@@ -125,7 +125,7 @@ public class Elevator extends SubsystemBase{
         }
         // SmartDashboard.putNumber("elevtest1", m_elevInterpolator.value(Math.abs(RobotContainer.m_arm.realEncoderValue)));
 
-        if (((!RobotContainer.m_groundintake.clearArm) && (encoderValue < m_elevInterpolatorBumper.value(Math.abs(RobotContainer.m_arm.realEncoderValue)))) || ((!RobotContainer.m_groundintake.clearArm) && (encoderValue < m_elevInterpolatorGI.value(Math.abs(RobotContainer.m_arm.realEncoderValue))))) {
+        if (((!RobotContainer.m_groundintake.clearArmOutside) && (encoderValue < m_elevInterpolatorBumper.value(Math.abs(RobotContainer.m_arm.realEncoderValue)))) || ((!RobotContainer.m_groundintake.clearArmOutside) && (encoderValue < m_elevInterpolatorGI.value(Math.abs(RobotContainer.m_arm.realEncoderValue))))) {
             canDown = 0;
         }
         
@@ -154,7 +154,7 @@ public class Elevator extends SubsystemBase{
             tryRumble = false;
         }
 
-        if (MathUtil.applyDeadband(encoderValue-setpoint, tol) == 0){
+        if ((MathUtil.applyDeadband(encoderValue-elevarmground, tol) == 0) && (MathUtil.applyDeadband(setpoint-elevarmground, tol) == 0)){
             there = true;
         }
         else {

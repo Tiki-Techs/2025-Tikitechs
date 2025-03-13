@@ -72,6 +72,12 @@ public class Intake extends SubsystemBase{
         // SmartDashboard.putNumber("Intake Set Speed", speed);
         if (handoff) {
             m_Leader.set(0.5);
+            if (Arm.there && Elevator.there){
+                m_Leader.set(-0.6);
+                if (have){
+                    RobotContainer.m_controller.handoffFalse();
+                }
+            }
         }
         
         else if (MathUtil.applyDeadband(RobotContainer.m_mechController.getRightTriggerAxis(), 0.15) != 0){

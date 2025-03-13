@@ -1,25 +1,17 @@
 
 package frc.robot.subsystems;
 
-import java.util.Calendar;
-
 import org.apache.commons.math3.analysis.interpolation.LinearInterpolator;
-import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
-import org.dyn4j.world.Island;
-import org.opencv.core.Mat;
 
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.networktables.IntegerPublisher;
-import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants.ControllerConstants;
 import frc.robot.RobotContainer;
 
 public class Arm extends SubsystemBase{
@@ -28,7 +20,7 @@ public class Arm extends SubsystemBase{
     public TalonFX m_Leader = new TalonFX(12); // PUT MOTORS BACK ON BRAKE MODE
     public TalonFX m_Follower = new TalonFX(11);
     public Follower follower = new Follower(12, false);
-    public PIDController pid = new PIDController(0.014, 0, 0.00008); // TUNE PID
+    public PIDController pid = new PIDController(0.020, 0, 0.0000); // TUNE PID, went from 14 to 20 just now
     public DutyCycleEncoder degEncoder = new DutyCycleEncoder(1, 360, 149.14728);
     // public DutyCycleEncoder degEncoder = new DutyCycleEncoder(1);
     private final LinearInterpolator interpolator = new LinearInterpolator();
@@ -61,7 +53,7 @@ public class Arm extends SubsystemBase{
     public boolean positiveUp;
     public double down;
     public double up;
-    public boolean there;
+    public static boolean there;
 
     // CLASS CONSTRUCTOR, CALLED ON INITIALIZATION OF CLASS (DEPLOYMENT OF CODE IF CLASS IS CREATED IN ROBOT CONTAINER).
     public Arm(){
@@ -149,18 +141,18 @@ public class Arm extends SubsystemBase{
         // IF THE ARM BEGAN CCW AND IS BETWEEN -160 AND -140 (IN THE LOWER RIGHT QUADRANT), CANNOT MOVE FURTHER CCW,
         // VICE VERSA. THIS PREVENTS TWISTING OF THE INTAKE WIRES.
         if (((isCCW == 1) && ((MathUtil.applyDeadband(realEncoderValue+165, 15) == 0)) || (realEncoderValue2 > 0 && realEncoderValue2 < 90)
-         || (((realEncoderValue > m_armInterpolatorBumper.value(Math.abs(RobotContainer.m_elevator.encoderValue))) && RobotContainer.m_groundintake.clearArm) || (realEncoderValue > m_armInterpolatorGI.value(Math.abs(RobotContainer.m_elevator.encoderValue))) && !RobotContainer.m_groundintake.clearArm)
+         || (((realEncoderValue > m_armInterpolatorBumper.value(Math.abs(RobotContainer.m_elevator.encoderValue))) && RobotContainer.m_groundintake.clearArmOutside) || (realEncoderValue > m_armInterpolatorGI.value(Math.abs(RobotContainer.m_elevator.encoderValue))) && !RobotContainer.m_groundintake.clearArmOutside)
          )) {
             canRight = 0;
         }
         if ((((isCCW == -1) && (((MathUtil.applyDeadband(realEncoderValue-165, 15) == 0))))
-         || (((realEncoderValue < -m_armInterpolatorBumper.value(Math.abs(RobotContainer.m_elevator.encoderValue))) && RobotContainer.m_groundintake.clearArm) || (realEncoderValue < -m_armInterpolatorGI.value(Math.abs(RobotContainer.m_elevator.encoderValue))) && !RobotContainer.m_groundintake.clearArm)
+         || (((realEncoderValue < -m_armInterpolatorBumper.value(Math.abs(RobotContainer.m_elevator.encoderValue))) && RobotContainer.m_groundintake.clearArmOutside) || (realEncoderValue < -m_armInterpolatorGI.value(Math.abs(RobotContainer.m_elevator.encoderValue))) && !RobotContainer.m_groundintake.clearArmOutside)
          )) {
             canLeft = 0;
         }
 
         // GETS RIGHT JOYSTICK X VALUE OF THE MECH CONTROLLER IF IT IS MOVED PAST A CERTAIN RANGE, OTHERWISE 0.
-        double rightX = -MathUtil.applyDeadband(RobotContainer.m_mechController.getRightX(), 0.15)*.75;
+        double rightX = -MathUtil.applyDeadband(RobotContainer.m_mechController.getRightX(), 0.15);
         if (isCCW == 1) {
             realEncoderValue2 = Math.abs(realEncoderValue);
         }
@@ -244,12 +236,12 @@ public class Arm extends SubsystemBase{
             m_Leader.set(0);
         }
         else {
-            m_Leader.set(speed*.5);
+            m_Leader.set(speed*0.5);
         }
 
         // IF MEANT TO RUMBLE, WILL CHECK WHETHER OR NOT THE POSITION IS WITHIN A CERTAIN RANGE OF THE DESIRED POSITION.
         // IF SO, WILL SET READY RUMBLE TO TRUE. SEE CONTROLLER PERIODIC.
-        if (MathUtil.applyDeadband(realEncoderValue2-desiredEncoderValue, tol) == 0) {
+        if (MathUtil.applyDeadband(realEncoderValue2+180, tol) == 0) {
             there = true;
         }
         else {

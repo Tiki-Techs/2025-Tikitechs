@@ -5,6 +5,7 @@
 package frc.robot;
 
 import frc.robot.Constants.OperatorConstants;
+import frc.robot.commands.AutoAlignTest;
 import frc.robot.commands.Autos;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Controller;
@@ -13,6 +14,7 @@ import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.GroundIntake;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.MotorRunnerElevManual;
+import frc.robot.subsystems.PoseEstimator;
 import frc.robot.subsystems.MotorRunnerArmManual;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.Vision;
@@ -53,7 +55,6 @@ public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   
   public static final SwerveSubsystem drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),"swerve"));
-  // public static final Vision m_vision = new Vision();
   public static boolean scaledToggle = false;
 
   // MAY CAUSE DELAY IN DEPLOYMENT
@@ -74,7 +75,9 @@ public class RobotContainer {
   public static final Elevator m_elevator = new Elevator();
   public static final Controller m_controller = new Controller(m_elevator, m_arm, m_intake);
 
-
+  // public static PoseEstimator pe = PoseEstimator.getInstance();
+  public static PoseEstimator poseEstimator = new PoseEstimator();
+  public static final Vision m_vision = new Vision();
   // private static final Controller m_controller = new Controller(m_elevator, m_arm, m_intake);
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
@@ -132,7 +135,9 @@ public class RobotContainer {
     //     () -> MathUtil.applyDeadband(-m_driverController.getRightX(), ControllerConstants.RIGHT_X_DEADBAND));
 
 
-    // Command testAutoAnd = drivebase.testAutoAnd();
+    Command testAutoAnd1 = drivebase.testAutoAnd1();
+
+    Command pt1 = drivebase.pt1();
   /**
    * Use this method to define your trigger->command mappings. Triggers can be created via the
    * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary
@@ -145,7 +150,16 @@ public class RobotContainer {
 
   private void configureBindings() {
     drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
-    m_driverController.a().whileTrue(zeroGyro);
+    // PUT GYRO BACK
+
+    // m_driverController.b().onTrue(new AutoAlignTest());
+    m_driverController.x().whileTrue(zeroGyro); // PUT THIS BACK
+    m_driverController.a().whileTrue(stopDrive); // PUT THIS BACK
+
+    m_driverController.b().whileFalse(driveFieldOrientedAnglularVelocity);
+    m_driverController.b().whileTrue(robotOrientedAngularVelocity);
+
+    // PUT GYRO BACK
     m_mechController.a().whileTrue(m_groundintake.haveSwitch());
 
 
@@ -153,32 +167,24 @@ public class RobotContainer {
     // m_mechController.x().whileTrue(m_controller.setpoint(-180, 139));
     m_mechController.y().whileTrue(m_controller.setpoint(-38, 47.6)); // l4
     m_mechController.b().whileTrue(m_controller.setpoint(-31, 19.4)); // l3
+    m_mechController.povLeft().whileTrue(m_controller.setpoint(0, 0)); // l3
     // l2: -27 and 4.3
-    // m_mechController.povUp().whileTrue(m_controller.handoff());
+    m_mechController.povUp().whileTrue(m_controller.handoff());
+    m_mechController.povDown().whileTrue(m_controller.handoffFalse());
 
 
 
-    m_mechController.povUp().onTrue(m_groundintake.l1CommandTrue());  // take out
-    m_mechController.povUp().onFalse(m_groundintake.l1CommandFalse());
+    // m_mechController.povUp().onTrue(m_groundintake.l1CommandTrue());  // take out
+    // m_mechController.povUp().onFalse(m_groundintake.l1CommandFalse());
 
 
 
 
-    // m_driverController.b().whileTrue(testAutoAnd); // take out
-    // m_driverController.x().whileTrue(scaledToggle());  // take out
+    m_driverController.povLeft().whileTrue(new AutoAlignTest(drivebase, 1)); // take out
+    m_driverController.povRight().whileTrue(new AutoAlignTest(drivebase, -1)); // take out
+    // m_driverController.a().whileTrue(pt1);
 
-    // m_mechController.rightBumper().whileTrue(m_controller.PIDStop());
-    // m_mechController.a().whileTrue(m_groundintake.intake());
-    // m_mechController.y().whileTrue(m_groundintake.groundIntakeHas());
-    // // m_mechController.b().whileTrue(m_groundintake.l1());
-    // m_mechController.b().whileTrue(m_groundintake.off());
-    // m_mechController.x().whileTrue(m_groundintake.mainIntakeHas());
-    // //NEVER PUT BELOW 12.5. JUST DON'T TOUCH ANY OF THE NUMBERS. OR ANY OF THE LETTERS. OR THE COMPUTER? UNLESS YOU'RE ON DISABLING.
-    // m_mechController.a().whileTrue(m_controller.PIDStop());
-    // m_mechController.x().whileTrue(m_controller.setpointArm(90));
-    // m_mechController.b().whileTrue(m_controller.setpointArm(-90));
-    // m_mechController.y().whileTrue(m_controller.setpointArm(0));
-    // m_mechController.leftBumper().whileTrue(m_controller.setpoint(-90, 31.5));
+    // // m_driverController.x().whileTrue(scaledToggle());  // take out
   }
 
 
@@ -197,12 +203,6 @@ public class RobotContainer {
   public Command getAutonomousCommand() {
  
     return autoChooser.getSelected();
-    // return null;
-  }
-
-  public void periodic(){
-    // SmartDashboard.putData("Auto Chooser", autoChooser);
-
   }
 
 }

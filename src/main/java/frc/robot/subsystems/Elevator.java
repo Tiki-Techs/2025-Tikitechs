@@ -44,7 +44,7 @@ public class Elevator extends SubsystemBase{
     public static boolean there = false;
     public double up;
     public double groundIntakeLevel = 16.6754; // change later
-    public double elevarmground = 30.4534;
+    public double elevarmground = 30.5634;
     public static double gearRatio = 37.8;
     public static double gearCoeff = (1.756*Math.PI*2)/gearRatio;
     
@@ -120,7 +120,7 @@ public class Elevator extends SubsystemBase{
         else {
             canUp = 1;
         }
-        if (((setpoint < groundIntakeLevel) || (encoderValue < groundIntakeLevel)) && (((RobotContainer.m_groundintake.desiredEncoderValue > 170) && (RobotContainer.m_groundintake.desiredEncoderValue < 180)) || ((RobotContainer.m_groundintake.realEncoderValue > 170) && (RobotContainer.m_groundintake.desiredEncoderValue < 180)))) {
+        if (((setpoint < groundIntakeLevel) || (encoderValue < groundIntakeLevel)) && (((RobotContainer.m_groundintake.desiredEncoderValue > 182)) || ((RobotContainer.m_groundintake.realEncoderValue > 182)))) {
             canDown = 0;
         }
         // SmartDashboard.putNumber("elevtest1", m_elevInterpolator.value(Math.abs(RobotContainer.m_arm.realEncoderValue)));

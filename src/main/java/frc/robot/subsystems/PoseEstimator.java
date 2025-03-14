@@ -76,9 +76,9 @@ StructPublisher<Pose3d> publisherEst = NetworkTableInstance.getDefault()
             drivetrain.getSwerveModulePositions(),
             drivetrain.getPose(),
             createStateStdDevs(
-                5, 5, 10),
+                0.1, 0.1, 10),
             createVisionMeasurementStdDevs(
-                30, 30, 1000000));
+                1.5, 1.5, 1000000));
   }
 
 
@@ -98,7 +98,6 @@ public Pose3d pose2D3D (Pose2d pose2d) {
     updateOdometryEstimate(); // Updates using wheel encoder data only
     // Updates using the vision estimate
     isDisabled = DriverStation.isDisabled();
-    SmartDashboard.putBoolean("isdisabled", isDisabled);
     estimateFrontPose = RobotContainer.m_vision.visionBotPoseFront();
     estimateBackPose = RobotContainer.m_vision.visionBotPoseBack();
     // publisherEst.set(pose2D3D(estimateFrontPose));
@@ -107,22 +106,15 @@ public Pose3d pose2D3D (Pose2d pose2d) {
     if (estimateFrontPose != null) { // Limelight mode; originally had a boolean for whether limelight was true or false, but 3880 only runs limelight (2024-2025)
       double currentTimestamp = RobotContainer.m_vision.getTimestampSeconds(RobotContainer.m_vision.getTotalLatency("limelight-front"));
       if (isEstimateReady(estimateFrontPose)) { // Does making so many bot pose variables impact accuracy?
-        SmartDashboard.putBoolean("is estimate ready", true);
         if (!isDisabled) {
           poseEstimator.setVisionMeasurementStdDevs(createVisionMeasurementStdDevs(8, 8, 0));
           addVisionMeasurement(estimateFrontPose, currentTimestamp);
-        SmartDashboard.putBoolean("is ready and disabled", false);
         }
         else {
           // poseEstimator.setVisionMeasurementStdDevs(createVisionMeasurementStdDevs(1000,1000, 0));
           addVisionMeasurement(estimateFrontPose, currentTimestamp);
-          
-        SmartDashboard.putBoolean("is ready and disabled", true);
         }
         frontChanged = true;
-      }
-      else {
-        SmartDashboard.putBoolean("is estimate ready", false);
       }
     }
     else {
@@ -133,11 +125,11 @@ public Pose3d pose2D3D (Pose2d pose2d) {
       double currentTimestamp = RobotContainer.m_vision.getTimestampSeconds(RobotContainer.m_vision.getTotalLatency("limelight-front"));
       if (isEstimateReady(estimateBackPose)) {
         if (!isDisabled) {
-          poseEstimator.setVisionMeasurementStdDevs(createVisionMeasurementStdDevs(30, 30, 300000));
+          poseEstimator.setVisionMeasurementStdDevs(createVisionMeasurementStdDevs(1.5, 1.5, 300000));
           addVisionMeasurement(estimateBackPose, currentTimestamp);
         }
         else {
-          poseEstimator.setVisionMeasurementStdDevs(createVisionMeasurementStdDevs(4,4, 3000000));
+          poseEstimator.setVisionMeasurementStdDevs(createVisionMeasurementStdDevs(0.02,0.02, 3000000));
           addVisionMeasurement(estimateBackPose, currentTimestamp);
         }
         backChanged = true;

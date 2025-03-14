@@ -41,10 +41,10 @@ import frc.robot.RobotContainer;
 
 public class Vision extends SubsystemBase {
   // limelight 3 is front
-    NetworkTable back = NetworkTableInstance.getDefault().getTable("limelight-backk");
+    NetworkTable back = NetworkTableInstance.getDefault().getTable("limelight-back");
     NetworkTable front = NetworkTableInstance.getDefault().getTable("limelight-front");
     NetworkTableEntry backTable = back.getEntry("targetpose_cameraspace");
-    NetworkTableEntry frontTable = front.getEntry("targetpose_cameraspace");
+    NetworkTableEntry frontTable = front.getEntry("targetpose_robotspace");
     public static double distanceFront;
     public static double distanceBack;
     public static double angleY;
@@ -108,7 +108,7 @@ public Pose3d pose2D3D (Pose2d pose2d) {
       for (int i = 0; i < 6; i++) {
         if (getDistanceFromAprilTag(i+6) < lowest) {
           lowest = getDistanceFromAprilTag(i+6);
-          tag = i+6;
+          tag = (-(i+6)%6)+1;
           SmartDashboard.putNumber("closest id", tag);
         }
       }
@@ -230,18 +230,18 @@ public Pose3d pose2D3D (Pose2d pose2d) {
       /// a thing to select between bothvisions, if seen on both, pick closer
     public void periodic() {
       
-      distanceFront = frontTable.getDoubleArray(new double[5])[2];
+      // distanceFront = frontTable.getDoubleArray(new double[5])[2];
 
-      distanceBack = frontTable.getDoubleArray(new double[5])[2];
+      // distanceBack = frontTable.getDoubleArray(new double[5])[2];
 
-      numFront = front.getEntry("tv").getDouble(0);
+      // numFront = front.getEntry("tv").getDouble(0);
       
-      numBack = back.getEntry("tv").getDouble(0);
+      // numBack = back.getEntry("tv").getDouble(0);
 
-      SmartDashboard.putNumber("disf", distanceFront);
-      SmartDashboard.putNumber("disb", distanceBack);
-      SmartDashboard.putNumber("tarf", numFront);
-      SmartDashboard.putNumber("tarb", numBack);
+      // SmartDashboard.putNumber("disf", distanceFront);
+      // SmartDashboard.putNumber("disb", distanceBack);
+      // SmartDashboard.putNumber("tarf", numFront);
+      // SmartDashboard.putNumber("tarb", numBack);
 
       // double tarF = (double) front.getEntry("tv").getInteger(0);
       // double tarB = (double) back.getEntry("tv").getInteger(0);
@@ -286,11 +286,16 @@ public Pose3d pose2D3D (Pose2d pose2d) {
           .getDouble(0)!=0;
 
       // LimelightHelpers.
+      distanceFront = NetworkTableInstance.getDefault()
+      .getTable("limelight-front")
+      .getEntry("targetpose_robotspace")
+      .getDoubleArray(new double[5])[2];
 
       SmartDashboard.putBoolean("llB", backLimelightConnected);
       SmartDashboard.putBoolean("llF", frontLimelightConnected);
+      SmartDashboard.putNumber("disf", distanceFront);
 
-      if (frontLimelightConnected) {
+      if (frontLimelightConnected && distanceFront <= 100) {
         // jsonResults = LimelightHelpers.getLatestResults(VisionConfig.POSE_LIMELIGHT);
 
         // estimatePose = LimelightHelpers.getBotPose2d_wpiBlue("limelight-front");

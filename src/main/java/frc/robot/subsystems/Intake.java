@@ -58,6 +58,7 @@ public class Intake extends SubsystemBase{
             have = true;
             handoff = false;
             GroundIntake.handoff = false;
+            RobotContainer.m_groundintake.have = false;
         }
         else {
             have = false;
@@ -70,14 +71,9 @@ public class Intake extends SubsystemBase{
         motorValue = m_Leader.get();
         // SmartDashboard.putNumber("Intake Actual Speed", motorValue);
         // SmartDashboard.putNumber("Intake Set Speed", speed);
+
         if (handoff) {
-            m_Leader.set(0.5);
-            if (Arm.there && Elevator.there){
-                m_Leader.set(-0.6);
-                if (have){
-                    RobotContainer.m_controller.handoffFalse();
-                }
-            }
+            m_Leader.set(-0.6);
         }
         
         else if (MathUtil.applyDeadband(RobotContainer.m_mechController.getRightTriggerAxis(), 0.15) != 0){
@@ -104,6 +100,5 @@ public class Intake extends SubsystemBase{
         else {
                 m_Leader.set(0);
             }
-        SmartDashboard.putNumber("speed of intake intake", m_Leader.get());
     }       
 }

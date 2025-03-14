@@ -38,7 +38,7 @@ public class Arm extends SubsystemBase{
     public double canLeft = 0;
     public double isCCW = -456787;
     public double speed = 0;
-    public double tol = 3;
+    public double tol = 2.5;
     public boolean hasAlgae = false; // SHOULD NOT NEED
 
     // SETPOINT VARIABLES
@@ -247,13 +247,13 @@ public class Arm extends SubsystemBase{
         else {
             there = false;
         }
-
-        if (tryRumble && there){
-            readyRumble = true;
-        }
-        else {
-                readyRumble = false;
-            }
+        // SmartDashboard.putBoolean("there arm", there);
+        // if (tryRumble && there){
+        //     readyRumble = true;
+        // }
+        // else {
+        //         readyRumble = false;
+        //     }
 
         SmartDashboard.putNumber("(Arm) True encoder value", realEncoderValue);
         SmartDashboard.putNumber("(Arm) True encoder value2", realEncoderValue2);
@@ -262,7 +262,6 @@ public class Arm extends SubsystemBase{
         SmartDashboard.putNumber("Left", isCCW);
         SmartDashboard.putNumber("Can Left", canLeft);
         SmartDashboard.putNumber("Can Right", canRight);
-        SmartDashboard.putNumber("Speed", speed);
         // double temp = m_armInterpolator.value(0);
         
         // double temp2 = m_armInterpolator.value(2);

@@ -5,6 +5,7 @@
 package frc.robot;
 
 import frc.robot.Constants.OperatorConstants;
+import frc.robot.commands.AutoAlignL1;
 import frc.robot.commands.AutoAlignTest;
 import frc.robot.commands.Autos;
 import frc.robot.subsystems.Arm;
@@ -129,13 +130,14 @@ public class RobotContainer {
       
     Command stopDrive = drivebase.stopDrive();
     Command zeroGyro = drivebase.zeroGyro();
+    Command rotateAlign = drivebase.rotateAlign();
+    Command rotateAlignL1 = drivebase.rotateAlignL1();
     // Command driveFieldOrientedAnglularVelocity = drivebase.driveCommand(
     //     () -> MathUtil.applyDeadband(-m_driverController.getLeftY(), ControllerConstants.LEFT_Y_DEADBAND),
     //     () -> 0,
     //     () -> MathUtil.applyDeadband(-m_driverController.getRightX(), ControllerConstants.RIGHT_X_DEADBAND));
 
 
-    Command testAutoAnd1 = drivebase.testAutoAnd1();
 
     Command pt1 = drivebase.pt1();
   /**
@@ -155,36 +157,28 @@ public class RobotContainer {
     // m_driverController.b().onTrue(new AutoAlignTest());
     m_driverController.x().whileTrue(zeroGyro); // PUT THIS BACK
     m_driverController.a().whileTrue(stopDrive); // PUT THIS BACK
+    m_driverController.b().whileTrue(rotateAlignL1);
 
-    m_driverController.b().whileFalse(driveFieldOrientedAnglularVelocity);
-    m_driverController.b().whileTrue(robotOrientedAngularVelocity);
+    m_driverController.rightTrigger(0.3).whileFalse(driveFieldOrientedAnglularVelocity);
+    m_driverController.rightTrigger(0.3).whileTrue(robotOrientedAngularVelocity);
 
-    // PUT GYRO BACK
-    m_mechController.a().whileTrue(m_groundintake.haveSwitch());
+    m_driverController.povLeft().onTrue(new AutoAlignTest(drivebase, 1)); // take out
+    m_driverController.povRight().onTrue(new AutoAlignTest(drivebase, -1)); // take out
+    
+    m_driverController.povUp().whileTrue(rotateAlign); // take out
+    
+    m_driverController.povDown().onTrue(new AutoAlignL1(drivebase)); // take out
 
-
-    // m_mechController.b().whileTrue(m_groundintake.off());
-    // m_mechController.x().whileTrue(m_controller.setpoint(-180, 139));
-    m_mechController.y().whileTrue(m_controller.setpoint(-38, 47.6)); // l4
-    m_mechController.b().whileTrue(m_controller.setpoint(-31, 19.4)); // l3
-    m_mechController.povLeft().whileTrue(m_controller.setpoint(0, 0)); // l3
+    m_mechController.b().whileTrue(m_groundintake.haveSwitch());
+    m_mechController.y().whileTrue(m_controller.handoff());
+    m_mechController.x().whileTrue(m_controller.handoff2());
+    m_mechController.a().whileTrue(m_controller.setpoint(0, 0));
     // l2: -27 and 4.3
-    m_mechController.povUp().whileTrue(m_controller.handoff());
-    m_mechController.povDown().whileTrue(m_controller.handoffFalse());
-
-
-
-    // m_mechController.povUp().onTrue(m_groundintake.l1CommandTrue());  // take out
-    // m_mechController.povUp().onFalse(m_groundintake.l1CommandFalse());
-
-
-
-
-    m_driverController.povLeft().whileTrue(new AutoAlignTest(drivebase, 1)); // take out
-    m_driverController.povRight().whileTrue(new AutoAlignTest(drivebase, -1)); // take out
-    // m_driverController.a().whileTrue(pt1);
-
-    // // m_driverController.x().whileTrue(scaledToggle());  // take out
+    m_mechController.povUp().whileTrue(m_controller.setpoint(-25, 9.155)); // L2
+    m_mechController.povRight().whileTrue(m_controller.setpoint(-25, 25.38)); // L3
+    m_mechController.povDown().whileTrue(m_controller.setpoint(-25, 49.33)); // L4
+    m_mechController.povLeft().whileTrue(m_groundintake.l1CommandTrue());
+    m_mechController.povLeft().whileFalse(m_groundintake.l1CommandFalse());
   }
 
 

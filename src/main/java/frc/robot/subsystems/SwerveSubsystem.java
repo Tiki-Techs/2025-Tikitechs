@@ -81,6 +81,7 @@ public class SwerveSubsystem extends SubsystemBase{
     public PIDController angleXPID = new PIDController(0.05, 0, 0.000); // TUNE PID
     public PIDController distancePID = new PIDController(0.065, 0, 0.000); // TUNE PID
     public double driveCoeff = 1;
+    public double rotAlign = 0;
     double tag = -124912;
     Pose3d robotPose = new Pose3d();
     Pose2d estimatedRobotPose = new Pose2d();
@@ -139,12 +140,15 @@ StructArrayPublisher<Pose3d> arrayPublisher = NetworkTableInstance.getDefault()
       else {
         swerveDrive.setChassisSpeeds(speeds);
       }
-      
     },
       // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
+      // new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic drive trains
+      //         new PIDConstants(0.03, 0.0, 0.0), // Translation PID constants
+      //         new PIDConstants(0.08, 0.0, 0.0) // Rotation PID constants
+      // ),
       new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic drive trains
-              new PIDConstants(0.05, 0.0, 0.0), // Translation PID constants
-              new PIDConstants(0.05, 0.0, 0.0) // Rotation PID constants
+              new PIDConstants(1, 0.0, 0.0), // Translation PID constants
+              new PIDConstants(1.07, 0.0, 0.0) // Rotation PID constants
       ),
  
       Constants.robotConfig, // The robot configuration
@@ -209,6 +213,28 @@ swerveDrive.driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(0, 0
                                           swerveDrive.getMaximumChassisVelocity()));
 });
 }
+
+public Command rotateAlign()
+{
+return run(() -> {
+swerveDrive.driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(0, 0,
+                                          Math.toRadians(-60 * RobotContainer.m_vision.closestTag() + rotAlign),
+                                          swerveDrive.getOdometryHeading().getRadians(),
+                                          swerveDrive.getMaximumChassisVelocity()));
+});
+}
+
+public Command rotateAlignL1()
+{
+return run(() -> {
+swerveDrive.driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(0, 0,
+                                          Math.toRadians(-60 * RobotContainer.m_vision.closestTag() + rotAlign + 90),
+                                          swerveDrive.getOdometryHeading().getRadians(),
+                                          swerveDrive.getMaximumChassisVelocity()));
+});
+}
+
+// (-60 * side.getAsDouble())-90
 
 public Command zeroGyro()
 {
@@ -302,95 +328,6 @@ public int together() {
   }
 }
 
-public Command testAutoAnd1(){
-  PathConstraints constraints = new PathConstraints(
-        3.0, 4.0,
-        Units.degreesToRadians(540), Units.degreesToRadians(720));
-
-// Since AutoBuilder is configured, we can use it to build pathfinding commands
-// PathPlannerPath path = PathPlannerPath.
-  
-return AutoBuilder.pathfindToPose(
-        
-  getReefPose(0, 0),
-        constraints);
-}
-
-
-public Command testAutoAnd2(){
-  PathConstraints constraints = new PathConstraints(
-        3.0, 4.0,
-        Units.degreesToRadians(540), Units.degreesToRadians(720));
-
-// Since AutoBuilder is configured, we can use it to build pathfinding commands
-// PathPlannerPath path = PathPlannerPath.
-  
-return AutoBuilder.pathfindToPose(
-        
-  getReefPose(1, 0),
-        constraints);
-}
-
-
-public Command testAutoAnd3(){
-  PathConstraints constraints = new PathConstraints(
-        3.0, 4.0,
-        Units.degreesToRadians(540), Units.degreesToRadians(720));
-
-// Since AutoBuilder is configured, we can use it to build pathfinding commands
-// PathPlannerPath path = PathPlannerPath.
-  
-return AutoBuilder.pathfindToPose(
-        
-  getReefPose(2, 0),
-        constraints);
-}
-
-
-public Command testAutoAnd4(){
-  PathConstraints constraints = new PathConstraints(
-        3.0, 4.0,
-        Units.degreesToRadians(540), Units.degreesToRadians(720));
-
-// Since AutoBuilder is configured, we can use it to build pathfinding commands
-// PathPlannerPath path = PathPlannerPath.
-  
-return AutoBuilder.pathfindToPose(
-        
-  getReefPose(3, 0),
-        constraints);
-}
-
-
-public Command testAutoAnd5(){
-  PathConstraints constraints = new PathConstraints(
-        3.0, 4.0,
-        Units.degreesToRadians(540), Units.degreesToRadians(720));
-
-// Since AutoBuilder is configured, we can use it to build pathfinding commands
-// PathPlannerPath path = PathPlannerPath.
-  
-return AutoBuilder.pathfindToPose(
-        
-  getReefPose(4, 0),
-        constraints);
-}
-
-
-public Command testAutoAnd6(){
-  PathConstraints constraints = new PathConstraints(
-        3.0, 4.0,
-        Units.degreesToRadians(540), Units.degreesToRadians(720));
-
-// Since AutoBuilder is configured, we can use it to build pathfinding commands
-// PathPlannerPath path = PathPlannerPath.
-  
-return AutoBuilder.pathfindToPose(
-        
-  getReefPose(5, 0),
-        constraints);
-}
-
     public double getDistanceFromAprilTag(int id) {
       Optional<Pose3d> tag = fieldLayout.getTagPose(id);
       return tag.map(pose3d -> PhotonUtils.getDistanceToPose(robotPose.toPose2d(), pose3d.toPose2d())).orElse(1000.0);
@@ -403,7 +340,7 @@ return AutoBuilder.pathfindToPose(
       for (int i = 0; i < 6; i++) {
         if (getDistanceFromAprilTag(i+6) < lowest) {
           lowest = getDistanceFromAprilTag(i+6);
-          tag = i+6;
+          tag = (-(i+6)%6)+1;
           SmartDashboard.putNumber("closest id", tag);
         }
       }
@@ -510,6 +447,13 @@ public Rotation3d rot2D3D(Rotation2d rot2d) {
 
 @Override
 public void periodic(){
+  
+  if (DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Red) {
+    rotAlign = 180;
+  }
+  else {
+    rotAlign = 0;
+  }
     swerveDrive.updateOdometry();
     // robotPose = new Pose3d(
     //     RobotContainer.poseEstimator.getPosition().getX(),
@@ -518,6 +462,7 @@ public void periodic(){
     //     rot2D3D(RobotContainer.poseEstimator.getPosition().getRotation())
         
     // );
+    closestTag();
     robotPose = new Pose3d(swerveDrive.getPose().getX(), swerveDrive.getPose().getY(), 0, swerveDrive.getGyroRotation3d());
     
     // estimatedRobotPose = PoseEstimator.getInstance().getPosition();
@@ -534,7 +479,7 @@ public void periodic(){
     SmartDashboard.putNumber("Encoder Front Right", swerveDrive.getModules()[1].getAbsoluteEncoder().getAbsolutePosition());
     SmartDashboard.putNumber("Encoder Front Left", swerveDrive.getModules()[0].getAbsoluteEncoder().getAbsolutePosition());
     SmartDashboard.putNumber("Encoder Back Right", swerveDrive.getModules()[3].getAbsoluteEncoder().getAbsolutePosition());
-    SmartDashboard.putNumber("Encoder Front Right relative", swerveDrive.getModules()[1].getRelativePosition());
+    // SmartDashboard.putNumber("Encoder Front Right relative", swerveDrive.getModules()[1].getRelativePosition());
     // SmartDashboard.putNumber("Distance from 20", getDistanceFromAprilTag(20));
     // SmartDashboard.putNumber("Odometry", swerveDrive.getOdometryHeading().getDegrees());
     // SmartDashboard.putNumber("gyro test", swerveDrive.getGyroRotation3d().getAngle());

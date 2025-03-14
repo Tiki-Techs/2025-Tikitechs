@@ -33,10 +33,10 @@ public class Controller extends SubsystemBase{
     // public static double[] elevSafety2 = {0, 0.0000001, 5.58, 9.508, 14.9, 20.27, 25.06, 31.6, 38.31, 39.55, 53.68, 60.44, 74.42, 83.35, 102.3, 105}; 
     // public static double[] armSafety2 =  {0, 86, 91.6, 95.1, 100.4, 104, 107.8, 113.4, 119.7, 125.4, 129.27, 129.3, 137.3, 139.8, 144, 180};
     
-    public static double[] elevSafetyGI = {0, 9.616284, 12.2061, 14.22276, 16.196964, 19.593444, 22.374312, 24.62448, 25.813248, 27.5964, 28.23324, 31.20537228, 1000.9472}; 
+    public static double[] elevSafetyGI = {0, 13.616284, 17.2061, 19.22276, 21.196964, 24.593444, 27.374312, 29.62448, 30.413248, 30.5964, 31.23324, 32.20537228, 1000.9472}; 
     public static double[] armSafetyGI =  {91.0, 91.001, 99.3, 104.9, 108.9, 117.2, 122.6, 128.4, 131.4, 137.2, 147.1, 180, 180.1};
 
-    public static double[] elevSafetyGI2 = {0, 0.001, 10.951364, 13.54118, 15.55784, 17.532044, 21.353084, 23.709392, 25.95956, 27.148328, 28.93148, 29.56832, 29.56832001};
+    public static double[] elevSafetyGI2 = {0, 0.001, 11.951364, 14.54118, 16.55784, 18.532044, 22.353084, 24.709392, 26.95956, 28.148328, 29.93148, 30.56832, 30.56832001};
     public static double[] armSafetyGI2 =  {0, 91.0, 91.001, 99.3, 104.9, 108.9, 117.2, 122.6, 128.4, 131.4, 137.2, 147.1, 180};
 
     public static double[] elevSafetyBumper = {0, 1.783152, 3.651216, 6.028752, 7.620852, 9.913476, 13.501008, 14.137848, 15.793632, 17.895204, 20.251512, 1000.9472}; 
@@ -100,7 +100,7 @@ public class Controller extends SubsystemBase{
     public void setpointElevatorArmElevator(double elevatorPoint, double armPoint, double elevatorPoint2){
                     elevator.setpoint(elevatorPoint);
                     arm.setpoint(armPoint);
-                    if (arm.there) {
+                    if (arm.there && RobotContainer.m_groundintake.handoffThere) {
                         elevator.setpoint(elevatorPoint2);
                     }
                     // rumble(true);
@@ -117,18 +117,18 @@ public class Controller extends SubsystemBase{
 
     }
 
+    public void setpoint2(double armPoint, double elevatorPoint){
+                    arm.setpoint(armPoint);
+                    elevator.setpoint(elevatorPoint);
+                    rumble(true);
+
+    }
+
     public Command handoff(){
         return new InstantCommand(
                 () -> {
                     if (RobotContainer.m_groundintake.getHave()) {
-                    // setpoint(-180, elevator.elevarmground);
-                    if (elevator.encoderValue >= elevator.elevarmground) {
-                        arm.setpoint(-180);
-                        elevator.setpoint(elevator.elevarmground);
-                    }
-                    else {       
-                        setpointElevatorArmElevator(elevator.elevarmground+8.5, -180, elevator.elevarmground);
-                    }
+                        setpoint2(-180, elevator.elevarmground+5.5);
                     Intake.handoff = true;
                     GroundIntake.handoff = true;
                     }
@@ -137,31 +137,31 @@ public class Controller extends SubsystemBase{
     }
 
     
-    public Command handoffFalse(){
+    public Command handoff2(){
         return new InstantCommand(
                 () -> {
-                    Intake.handoff = false;
-                    GroundIntake.handoff = false;
+                    if (RobotContainer.m_groundintake.getHave()) {
+                        setpoint2(-180, elevator.elevarmground);
+                    }
                 }, this);
 
     }
 
+    
+    public void handoffFalse(){
+                    Intake.handoff = false;
+                    GroundIntake.handoff = false;
+                    RobotContainer.m_groundintake.have = false;
+    }
 
-    // public Command pickup(){
-    //     return new InstantCommand(
-    //             () -> {
-    //                 arm.setpoint(Arm.down);
-    //                 // may just be able to do arm and elevator at same time
-    //                 elevator.setpoint(Elevator.down2);
-    //                 // intake in/mech control, decide later
-    //                 // if (!limitSwitch.get()){ // don't use an if, do an until
-    //                 //     setpoint(arm.up, arm.up);
-    //                 //     have = true;
-    //                 // }
-    //                 rumble(true);
-    //             }, this);
-
-    // }
+    public Command handoffFalse2(){
+        return new InstantCommand(
+            () -> {
+                    Intake.handoff = false;
+                    GroundIntake.handoff = false;
+                    RobotContainer.m_groundintake.have = false;
+            }, this);
+    }
 
 
     public Command PIDStop(){
@@ -180,24 +180,6 @@ public class Controller extends SubsystemBase{
   
     @Override
     public void periodic (){ // add in stuff based on vision, too?
-        if (GroundIntake.have && !Intake.have) {
-            // setpoint(Arm.down, Elevator.down);
-            SmartDashboard.putString("Controller Action", "Pick Up Coral");
-        }
-        else {
-            SmartDashboard.putString("Controller Action", "Nothing");
-        }
-        
-        time = m_Timer.get();
-
-        if (arm.readyRumble && elevator.readyRumble){
-            // RobotContainer.m_driverController.setRumble(RumbleType.kBothRumble, 1);
-            RobotContainer.m_driverController.setRumble(RumbleType.kBothRumble, 1); // figure out rumble = false
-            // SmartDashboard.putBoolean("Elevator/Arm", manual);
-        }
-        else {
-            RobotContainer.m_driverController.setRumble(RumbleType.kBothRumble, 0); // figure out rumble = false
-        }    
         // UNFINISHED CODE FOR GOING TO A SETPOINT WHEN DRIVING. MAY NOT USED
         // if ((MathUtil.applyDeadband(RobotContainer.m_driverController.getLeftX(), 0.15) != 0) || 
         // (MathUtil.applyDeadband(RobotContainer.m_driverController.getLeftY(), 0.15) != 0)){

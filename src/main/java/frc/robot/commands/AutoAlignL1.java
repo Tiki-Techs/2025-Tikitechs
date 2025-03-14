@@ -31,14 +31,12 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.math.util.Units;
 
 
-public class AutoAlignTest extends Command{
+public class AutoAlignL1 extends Command{
     SwerveSubsystem swerve;
     public Command pathfindingCommand;
-    int coralSide;
 
-    public AutoAlignTest(SwerveSubsystem swerve, int side) {
+    public AutoAlignL1(SwerveSubsystem swerve) {
         this.swerve = swerve;
-        coralSide = side;
         addRequirements(swerve);
     }
 
@@ -50,13 +48,13 @@ public class AutoAlignTest extends Command{
 
             // return xVel;
         
-        pathfindingCommand = testAutoAnd(coralSide);
+        pathfindingCommand = testAutoAnd();
         if (pathfindingCommand != null) {
             pathfindingCommand.schedule();
         }
     }
 
-public Command testAutoAnd(int coralSide){
+public Command testAutoAnd(){
   PathConstraints constraints = new PathConstraints(
         3.0, 4.0,
         Units.degreesToRadians(540), Units.degreesToRadians(720));
@@ -68,7 +66,7 @@ public Command testAutoAnd(int coralSide){
 
 return AutoBuilder.pathfindToPose(
         
-  getReefPose(() -> RobotContainer.m_vision.closestTag(), coralSide),
+  getReefPose(() -> RobotContainer.m_vision.closestTag()),
         constraints);
   // return null;
 }
@@ -88,7 +86,7 @@ private static boolean flipToRed; // whether to use red reef (otherwise blue)
 
 
 
-public static final Distance DISTANCE_TO_REEF = Inches.of(27 / 2).plus(Inches.of(7)); // 4 is bumper thickness
+public static final Distance DISTANCE_TO_REEF = Inches.of(27 / 2).plus(Inches.of(3.5)); // 4 is bumper thickness
 
 
 // Found by taking distance from tag 18 to center and adding offset from reef
@@ -107,7 +105,7 @@ private static final Translation2d CENTERED_TO_LEFT_BRANCH = new Translation2d(M
  * @param relativePos The relative position on the reef (-1 for right branch, 0 for center, 1 for left branch).
  * @return The calculated Pose2d for scoring.
  */
-public static Pose2d getReefPose(DoubleSupplier side, int relativePos) {
+public static Pose2d getReefPose(DoubleSupplier side) {
     // determine whether to use red or blue reef position
     flipToRed = DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Red;
 
@@ -115,15 +113,15 @@ public static Pose2d getReefPose(DoubleSupplier side, int relativePos) {
     Translation2d reefCenter = REEF_CENTER_BLUE;
 
     // robot position centered on close reef side
-    Translation2d translation = reefCenter.plus(new Translation2d(REEF_APOTHEM.unaryMinus(), Meters.of(0.4)));
+    Translation2d translation = reefCenter.plus(new Translation2d(REEF_APOTHEM.unaryMinus(), Meters.zero()));
     // translate to correct branch (left, right, center)
-    translation = translation.plus(CENTERED_TO_LEFT_BRANCH.times(relativePos));
+    translation = translation.plus(CENTERED_TO_LEFT_BRANCH.times(0));
     // rotate to correct side
     translation = translation.rotateAround(reefCenter, Rotation2d.fromDegrees(-60 * side.getAsDouble()));
 
     // make pose from translation and correct rotation
     Pose2d reefPose = new Pose2d(translation,
-            Rotation2d.fromDegrees(-60 * side.getAsDouble()));
+            Rotation2d.fromDegrees(-60 * side.getAsDouble()+90));
 
     if (flipToRed) {
         reefPose = flipPose(reefPose);

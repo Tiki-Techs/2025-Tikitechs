@@ -15,7 +15,9 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Robot;
 import frc.robot.RobotContainer;
 
 public class GroundIntake extends SubsystemBase{
@@ -38,11 +40,12 @@ public class GroundIntake extends SubsystemBase{
     
     public PIDController pid = new PIDController(0.0050, 0, 0);
     private final SlewRateLimiter limiter = new SlewRateLimiter(5.4);
-    public double intake = 68.5;
+    public double intake = 67.0;
     public double l1Value = 173;
     // public double mainIntakeHas = 120; // x
     public double mainIntakeHas = 173; // x
     public double groundIntakeHas = 234.5;
+    // public double groundIntakeHas = 229.5;
     
     public static boolean have = true;
     public double tempIntake = 0;
@@ -54,6 +57,7 @@ public class GroundIntake extends SubsystemBase{
     public static boolean handoff = false;
     public boolean handoffThere = false;
     public boolean l1 = false;
+    public boolean auto = false;
 
     public GroundIntake(){
         
@@ -62,23 +66,23 @@ public class GroundIntake extends SubsystemBase{
     public void setSpeed(double speed){
     }
 
-    public Command intake() {
-        return new InstantCommand(() -> {
-        hoodSpeed = pid.calculate(realEncoderValue, intake);
-        if (hoodSpeed > 0) {
-            m_hood.set(canUp*hoodSpeed);
-        }
-        else {
-            m_hood.set(canDown*hoodSpeed);
-        }
-        if (!have || wait){
-        // m_power.set(0.35);
-        }
-        else {
-            m_power.set(0);
-        }
-        }, this);
-    }
+    // public Command intake() {
+    //     return new InstantCommand(() -> {
+    //     hoodSpeed = pid.calculate(realEncoderValue, intake);
+    //     if (hoodSpeed > 0) {
+    //         m_hood.set(canUp*hoodSpeed);
+    //     }
+    //     else {
+    //         m_hood.set(canDown*hoodSpeed);
+    //     }
+    //     if (!have || wait){
+    //     // m_power.set(0.35);
+    //     }
+    //     else {
+    //         m_power.set(0);
+    //     }
+    //     }, this);
+    // }
 
     
     public void intake2() {
@@ -107,7 +111,7 @@ public class GroundIntake extends SubsystemBase{
             m_hood.set(canUp*hoodSpeed);
         }
         else {
-            m_hood.set(canDown*hoodSpeed);
+            m_hood.set(hoodSpeed*3);
         }
     }
 
@@ -144,11 +148,16 @@ public class GroundIntake extends SubsystemBase{
         // m_power.set(0);
     }
 
-    public Command haveSwitch() {
+    public Command haveFalse() {
         return new InstantCommand(() -> {
-            have = !have;
+            have = false;
             RobotContainer.m_intake.handoff = false;
             handoff = false;
+    }, this);
+    }
+    public Command haveTrue() {
+        return new InstantCommand(() -> {
+            have = true;
     }, this);
     }
 
@@ -164,10 +173,31 @@ public class GroundIntake extends SubsystemBase{
     }, this);
     }
 
+    // public Command autoSpit() {
+    //     return new InstantCommand(() -> {
+    //         m_Timer.reset();
+    //         m_Timer.start();
+    //     while (m_Timer.get() <= 2) {
+    //         m_power.set(-0.5);
+    //         SmartDashboard.putBoolean("test auto gi", false);
+    //     }
+    //         m_power.set(0);
+    //         SmartDashboard.putBoolean("test auto gi", true);
+    // }, this);
+    // }
+
     public Command autoSpit() {
         return new InstantCommand(() -> {
-            m_power.set(-0.5);
-            SmartDashboard.putString("running", "true");
+            auto = true;
+            m_power.set(-0.2);
+    }, this);
+    }
+
+    
+    public Command autoSpitOff() {
+        return new InstantCommand(() -> {
+            auto = false;
+            m_power.set(0);
     }, this);
     }
 
@@ -243,6 +273,9 @@ public class GroundIntake extends SubsystemBase{
         }
     }
 
+    // @Override
+    // public void peri
+
     @Override
     public void periodic(){
     
@@ -296,7 +329,7 @@ public class GroundIntake extends SubsystemBase{
                 m_Timer.start();
                 wait = true;
             }
-            if (m_Timer.get() > 2) {
+            if (m_Timer.get() > 0.9) {
                 wait = false;
                 have = true;
                 m_Timer.reset();
@@ -322,6 +355,11 @@ public class GroundIntake extends SubsystemBase{
         
         else if (handoff) {
             handoff();
+            SmartDashboard.putBoolean("arm there", Arm.there);
+            
+            SmartDashboard.putBoolean("elev there", Elevator.there);
+            
+            SmartDashboard.putBoolean("intk there", RobotContainer.m_intake.m_Leader.get() <= -0.5);
             if ((Arm.there && Elevator.there) && (RobotContainer.m_intake.m_Leader.get() <= -0.5)) {
                 m_power.set(-0.25); // check off later
             }
@@ -348,8 +386,10 @@ public class GroundIntake extends SubsystemBase{
             // m_power.set(0);
             SmartDashboard.putString("Ground Intake Action", "wait to score");
         }
+        if (auto) {
 
-        if (RobotContainer.m_mechController.rightBumper().getAsBoolean()){
+        }
+        else if (RobotContainer.m_mechController.rightBumper().getAsBoolean()){
             // m_Leader.set(Math.signum(RobotContainer.m_driverController.getLeftY()));
             if (l1) {
              m_power.set(-0.4);   
@@ -378,6 +418,9 @@ public class GroundIntake extends SubsystemBase{
         else if (Intake.have) {
             m_power.set(0.05);
         }
+        // else {
+        //     m_power.set(0);
+        // }
         // else if (RobotContainer.m_mechController.x().getAsBoolean() && !have){
         //     // m_Leader.set(Math.signum(RobotContainer.m_driverController.getLeftY()));
         //     m_power.set(0.45);
@@ -451,6 +494,8 @@ public class GroundIntake extends SubsystemBase{
         // SmartDashboard.putNumber("voltage", m_power.getBusVoltage());
         SmartDashboard.putNumber("current", m_power.getOutputCurrent());
         SmartDashboard.putNumber("groundIntake through encoder", realEncoderValue);
+        SmartDashboard.putNumber("ground intake desired value", desiredEncoderValue);
+        SmartDashboard.putNumber("ground intake hood speed", m_hood.get());
         SmartDashboard.putNumber("gi canup", canUp);
         SmartDashboard.putNumber("gi candown", canDown);
         SmartDashboard.putNumber("Ground Intake Timer", m_Timer.get());

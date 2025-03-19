@@ -45,11 +45,15 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Filesystem;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
 import swervelib.SwerveDrive;
@@ -82,6 +86,7 @@ public class SwerveSubsystem extends SubsystemBase{
     public PIDController distancePID = new PIDController(0.065, 0, 0.000); // TUNE PID
     public double driveCoeff = 1;
     public double rotAlign = 0;
+    public final Timer m_Timer = new Timer();
     double tag = -124912;
     Pose3d robotPose = new Pose3d();
     Pose2d estimatedRobotPose = new Pose2d();
@@ -90,20 +95,20 @@ StructPublisher<Pose3d> publisher = NetworkTableInstance.getDefault()
   .getStructTopic("MyPose", Pose3d.struct).publish();
 
   
-StructPublisher<Pose3d> publisherTogether = NetworkTableInstance.getDefault()
-.getStructTopic("MyPoseTogether", Pose3d.struct).publish();
+// StructPublisher<Pose3d> publisherTogether = NetworkTableInstance.getDefault()
+// .getStructTopic("MyPoseTogether", Pose3d.struct).publish();
   
-StructPublisher<Pose3d> publisherEst = NetworkTableInstance.getDefault()
-.getStructTopic("MyPoseEst", Pose3d.struct).publish();
-StructArrayPublisher<Pose3d> arrayPublisher = NetworkTableInstance.getDefault()
-  .getStructArrayTopic("MyPoseArray", Pose3d.struct).publish();
+// StructPublisher<Pose3d> publisherEst = NetworkTableInstance.getDefault()
+// .getStructTopic("MyPoseEst", Pose3d.struct).publish();
+// StructArrayPublisher<Pose3d> arrayPublisher = NetworkTableInstance.getDefault()
+//   .getStructArrayTopic("MyPoseArray", Pose3d.struct).publish();
 
     public static final AprilTagFieldLayout fieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
 
     // public static SwerveSubsystem getInstance() {
-    //   if (instance == null) instance = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),"swerve"));
+    //  " if (instance == null) instance = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),"swerve"));
     //   return instance;
-    // }
+    // }"
 
     // File swerveJsonDirectory = new File(Filesystem.getDeployDirectory(),"swerve");
     public SwerveSubsystem(File directory){
@@ -119,9 +124,21 @@ StructArrayPublisher<Pose3d> arrayPublisher = NetworkTableInstance.getDefault()
         }
         // Do this in either robot or subsystem init
         SmartDashboard.putData("Field", m_field);
-        swerveDrive.resetOdometry(new Pose2d(5, 7, new Rotation2d()));
-        // swerveDrive.resetOdometry(new Pose2d(8.12, 5.81, new Rotation2d()));
+
+        // // BLUE MID POSITION
+        // swerveDrive.resetOdometro23y(new Pose2d(10.3, 4, new Rotation2d())); 
+        // // BLUE LEFT POSITION
+        // swerveDrive.resetOdometry(new Pose2d(7.2, 4, new Rotation2d())); 
+        // // BLUE RIGHT POSITION
+        // swerveDrive.resetOdometry(new Pose2d(7.2, 4, new Rotation2d())); 
+        // // RED MID POSITION
+        // swerveDrive.resetOdometry(new Pose2d(7.2, 4, new Rotation2d(180))); 
+        // // RED LEFT POSITION
+        // swerveDrive.resetOdometry(new Pose2d(7.2, 4, new Rotation2d(180))); 
+        // // RED RIGHT POSITION
+        // swerveDrive.resetOdometry(new Pose2d(7.2, 4, new Rotation2d(180))); 
         swerveDrive.setMaximumAllowableSpeeds(3, 3);
+
     // Load the RobotConfig from the GUI settings. You should probably
     // store this in your Constants file
    
@@ -147,8 +164,8 @@ StructArrayPublisher<Pose3d> arrayPublisher = NetworkTableInstance.getDefault()
       //         new PIDConstants(0.08, 0.0, 0.0) // Rotation PID constants
       // ),
       new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic drive trains
-              new PIDConstants(1, 0.0, 0.0), // Translation PID constants
-              new PIDConstants(1.07, 0.0, 0.0) // Rotation PID constants
+              new PIDConstants(1.7, 0.0, 0.11), // Translation PID constants
+              new PIDConstants(1.2, 0.0, 0.09) // Rotation PID constants
       ),
  
       Constants.robotConfig, // The robot configuration
@@ -290,13 +307,57 @@ Translation2d scaledInputs = SwerveMath.scaleTranslation(new Translation2d(trans
 
 // Make the robot move
 swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(
-                                          scaledInputs.getX()*0.15, 
-                                          scaledInputs.getY()*0.15,
-                                          swerveDrive.getOdometryHeading().getRadians() + angularRotationX.getAsDouble()*0.15,
+                                          scaledInputs.getX()*0.4, 
+                                          scaledInputs.getY()*0.4,
+                                          swerveDrive.getOdometryHeading().getRadians() + angularRotationX.getAsDouble()*0.30,
                                           swerveDrive.getOdometryHeading().getRadians(),
                                           swerveDrive.getMaximumChassisVelocity()));
 });
 }
+
+  public Command x() {
+    return new InstantCommand(
+      () -> {
+        SmartDashboard.putString("test 111", "getName()");
+  //       m_Timer.reset();
+  //       m_Timer.start();
+  //       while (m_Timer.get() <= 1) {
+  // swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(
+  //   0.07, 
+  //   0,
+  //   swerveDrive.getOdometryHeading().getRadians(),
+  //   swerveDrive.getOdometryHeading().getRadians(),
+  //   swerveDrive.getMaximumChassisVelocity()));
+  //       }
+      });
+    }
+
+  //   public Command x2() {
+  //     return new RunCommand(
+  //         () -> {
+  //             m_Timer.reset();
+  //             m_Timer.start();
+  //         while (m_Timer.get() <= 0.5) {
+  //           swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(
+  //                   0, 
+  //                   0,
+  //                   swerveDrive.getOdometryHeading().getRadians()-2,
+  //                   swerveDrive.getOdometryHeading().getRadians(),
+  //                   swerveDrive.getMaximumChassisVelocity()));
+  //         }}
+  //     );
+  // }
+
+  public Command x2() {
+    return new RunCommand(
+      () ->
+          swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(
+                  0, 
+                  0,
+                  swerveDrive.getOdometryHeading().getRadians()-2,
+                  swerveDrive.getOdometryHeading().getRadians(),
+                  swerveDrive.getMaximumChassisVelocity()))
+    );}
 
   public double getOdometryHeading(){
     return swerveDrive.getOdometryHeading().getDegrees();
@@ -341,7 +402,7 @@ public int together() {
         if (getDistanceFromAprilTag(i+6) < lowest) {
           lowest = getDistanceFromAprilTag(i+6);
           tag = (-(i+6)%6)+1;
-          SmartDashboard.putNumber("closest id", tag);
+          // SmartDashboard.putNumber("closest id", tag);
         }
       }
     }

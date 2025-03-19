@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 10.309426229508198,
-        "y": 6.122848360655737
+        "x": 7.2,
+        "y": 4.0
       },
       "prevControl": null,
       "nextControl": {
-        "x": 11.309426229508196,
-        "y": 6.122848360655737
+        "x": 6.92889344262295,
+        "y": 4.001024590163935
       },
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "Center Start"
     },
     {
       "anchor": {
-        "x": 4.0,
-        "y": 6.0
+        "x": 6.313,
+        "y": 4.0
       },
       "prevControl": {
-        "x": 3.0,
-        "y": 6.0
+        "x": 6.562997568049901,
+        "y": 4.0011027099052985
       },
       "nextControl": null,
       "isLocked": false,

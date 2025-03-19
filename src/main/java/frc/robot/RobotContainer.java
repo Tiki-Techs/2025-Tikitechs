@@ -15,7 +15,7 @@ import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.GroundIntake;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.MotorRunnerElevManual;
-import frc.robot.subsystems.PoseEstimator;
+// import frc.robot.subsystems.PoseEstimator;
 import frc.robot.subsystems.MotorRunnerArmManual;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.Vision;
@@ -77,7 +77,7 @@ public class RobotContainer {
   public static final Controller m_controller = new Controller(m_elevator, m_arm, m_intake);
 
   // public static PoseEstimator pe = PoseEstimator.getInstance();
-  public static PoseEstimator poseEstimator = new PoseEstimator();
+  // public static PoseEstimator poseEstimator = new PoseEstimator();
   public static final Vision m_vision = new Vision();
   // private static final Controller m_controller = new Controller(m_elevator, m_arm, m_intake);
 
@@ -86,15 +86,33 @@ public class RobotContainer {
   public static final CommandXboxController m_mechController = new CommandXboxController(1);
   // private final CommandXboxController m_elevatorController = new CommandXboxController(OperatorConstants.ELEVATOR_GAMEPAD_PORT);
 
+  // private final String middleAuto = "Mid Auto";
+  // private final String l1test = "l1 test";
+  // private final String sourceSideAuto = "Source Side Auto";
+  // private final String middleAuto4 = "Middle Auto 4";
+  // private final String Citrus = "Citrus";
  /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     // Configure the trigger bindings
     configureBindings();
     // MAY CAUSE DELAY IN DEPLOYMENT
+    
+    // NamedCommands.registerCommand("Spit", new AutoAlignTest(drivebase, 0));
+    // NamedCommands.registerCommand("Off", m_groundintake.autoSpitOff());
+
+
+    // autoChooser = new SendableChooser<Command>();
+    // autoChooser.setDefaultOption("Mid Auto", AutoBuilder.buildAuto(middleAuto));
+    // autoChooser.addOption("l1 test", AutoBuilder.buildAuto(l1test));
+    // autoChooser.addOption("Source Side Auto", AutoBuilder.buildAuto(sourceSideAuto));
+    // autoChooser.addOption("Middle Auto 4", AutoBuilder.buildAuto(middleAuto4));
+    // autoChooser.addOption("Citrus", AutoBuilder.buildAuto(Citrus));
+
+
     autoChooser = AutoBuilder.buildAutoChooser();
+    // autoChooser.setDefaultOption("l1 test", driveFieldOrientedAnglularVelocity);;
     SmartDashboard.putData(autoChooser);
 
-    NamedCommands.registerCommand("Spit", m_groundintake.autoSpit());
 
     // KeyboardAndMouse.getInstance().key("a").onTrue(new InstantCommand( () -> Intake.m_Leader.set(0.3)));
     // autoChooser.setDefaultOption("Mid Auto", AutoBuilder.buildAuto(middleAuto));
@@ -138,7 +156,7 @@ public class RobotContainer {
     //     () -> MathUtil.applyDeadband(-m_driverController.getRightX(), ControllerConstants.RIGHT_X_DEADBAND));
 
 
-
+    // Command x = drivebase.x();
     Command pt1 = drivebase.pt1();
   /**
    * Use this method to define your trigger->command mappings. Triggers can be created via the
@@ -157,21 +175,22 @@ public class RobotContainer {
     // m_driverController.b().onTrue(new AutoAlignTest());
     m_driverController.x().whileTrue(zeroGyro); // PUT THIS BACK
     m_driverController.a().whileTrue(stopDrive); // PUT THIS BACK
-    m_driverController.b().whileTrue(rotateAlignL1);
+    m_driverController.b().whileTrue(new AutoAlignL1(drivebase));
 
     m_driverController.rightTrigger(0.3).whileFalse(driveFieldOrientedAnglularVelocity);
     m_driverController.rightTrigger(0.3).whileTrue(robotOrientedAngularVelocity);
+    // m_driverController.leftTrigger(0.3).onTrue(x);
 
-    m_driverController.povLeft().onTrue(new AutoAlignTest(drivebase, 1)); // take out
-    m_driverController.povRight().onTrue(new AutoAlignTest(drivebase, -1)); // take out
+    m_driverController.leftBumper().onTrue(new AutoAlignTest(drivebase, 1)); // take out
+    m_driverController.rightBumper().onTrue(new AutoAlignTest(drivebase, -1)); // take out
     
     m_driverController.povUp().whileTrue(rotateAlign); // take out
     
-    m_driverController.povDown().onTrue(new AutoAlignL1(drivebase)); // take out
+    // m_driverController.povDown().onTrue(new AutoAlignL1(drivebase)); // take out
 
-    m_mechController.b().whileTrue(m_groundintake.haveSwitch());
-    m_mechController.y().whileTrue(m_controller.handoff());
-    m_mechController.x().whileTrue(m_controller.handoff2());
+    m_mechController.b().whileTrue(m_groundintake.haveFalse());
+    m_mechController.y().whileTrue(m_controller.handoff3());
+    m_mechController.x().whileTrue(m_groundintake.haveTrue());
     m_mechController.a().whileTrue(m_controller.setpoint(0, 0));
     // l2: -27 and 4.3
     m_mechController.povUp().whileTrue(m_controller.setpoint(-25, 9.155)); // L2

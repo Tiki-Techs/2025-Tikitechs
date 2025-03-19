@@ -27,7 +27,7 @@ public class Intake extends SubsystemBase{
     public double motorValue;
     public double speed = 0;
     public static boolean have = false;
-    public static boolean coral = false;
+    public static boolean coral = true;
     public static boolean algae = false;
     public static boolean handoff = false;
     // ADD THE LIMIT SWITCH FOR 4

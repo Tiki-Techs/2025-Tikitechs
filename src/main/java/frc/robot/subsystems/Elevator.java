@@ -44,15 +44,17 @@ public class Elevator extends SubsystemBase{
     public static boolean there = false;
     public double up;
     public double groundIntakeLevel = 16.6754; // change later
-    public double elevarmground = 30.5634;
+    // public double elevarmground = 30.5634;
+    public double elevarmground = 30.2;
     public static double gearRatio = 37.8;
     public static double gearCoeff = (1.756*Math.PI*2)/gearRatio;
+    public boolean testHandoff = false;
     
         
         public double aSDHUAWDUJHAOSDJUHWODIntakeLevel = 34.60164; // change later
     
-        public double tol = 0.10684;
-        public double tol2 = 0.10684;
+        public double tol = 0.19684;
+        public double tol2 = 0.19684;
         public double speed;
     
         public Elevator(){
@@ -159,6 +161,13 @@ public class Elevator extends SubsystemBase{
         }
         else {
             there = false;
+        }
+
+        if (MathUtil.applyDeadband(encoderValue-elevarmground+5.5, tol) == 0 && (MathUtil.applyDeadband(setpoint-elevarmground+5.5, tol) == 0)) {
+            testHandoff = true;
+        }
+        else {
+            testHandoff = false;
         }
 
         // Rumble logic.

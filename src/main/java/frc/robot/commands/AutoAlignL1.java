@@ -56,7 +56,7 @@ public class AutoAlignL1 extends Command{
 
 public Command testAutoAnd(){
   PathConstraints constraints = new PathConstraints(
-        3.0, 4.0,
+        5.2155, 6.0,
         Units.degreesToRadians(540), Units.degreesToRadians(720));
         SmartDashboard.putNumber("closest id", RobotContainer.m_vision.closestTag());
 

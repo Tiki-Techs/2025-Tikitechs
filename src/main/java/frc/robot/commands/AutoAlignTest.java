@@ -58,7 +58,7 @@ public class AutoAlignTest extends Command{
 
 public Command testAutoAnd(int coralSide){
   PathConstraints constraints = new PathConstraints(
-        3.0, 4.0,
+        5.2155, 6.0,
         Units.degreesToRadians(540), Units.degreesToRadians(720));
         SmartDashboard.putNumber("closest id", RobotContainer.m_vision.closestTag());
 
@@ -88,7 +88,7 @@ private static boolean flipToRed; // whether to use red reef (otherwise blue)
 
 
 
-public static final Distance DISTANCE_TO_REEF = Inches.of(27 / 2).plus(Inches.of(7)); // 4 is bumper thickness
+public static final Distance DISTANCE_TO_REEF = Inches.of(27 / 2).plus(Inches.of(9.8)); // 4 is bumper thickness
 
 
 // Found by taking distance from tag 18 to center and adding offset from reef
@@ -115,7 +115,7 @@ public static Pose2d getReefPose(DoubleSupplier side, int relativePos) {
     Translation2d reefCenter = REEF_CENTER_BLUE;
 
     // robot position centered on close reef side
-    Translation2d translation = reefCenter.plus(new Translation2d(REEF_APOTHEM.unaryMinus(), Meters.of(0.4)));
+    Translation2d translation = reefCenter.plus(new Translation2d(REEF_APOTHEM.unaryMinus(), Meters.of(0.10802)));
     // translate to correct branch (left, right, center)
     translation = translation.plus(CENTERED_TO_LEFT_BRANCH.times(relativePos));
     // rotate to correct side

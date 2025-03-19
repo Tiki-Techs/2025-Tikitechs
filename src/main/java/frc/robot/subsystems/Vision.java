@@ -8,6 +8,7 @@ import org.photonvision.estimation.TargetModel;
 import org.photonvision.simulation.VisionSystemSim;
 import org.photonvision.simulation.VisionTargetSim;
 
+import com.ctre.phoenix6.mechanisms.DifferentialMechanism.DisabledReason;
 import com.fasterxml.jackson.databind.deser.ValueInstantiator.Gettable;
 import com.fasterxml.jackson.databind.ser.AnyGetterWriter;
 
@@ -19,7 +20,9 @@ import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
@@ -56,6 +59,15 @@ public class Vision extends SubsystemBase {
     private Pose2d backPose;
     private boolean frontLimelightConnected = false;
     private boolean backLimelightConnected = false;
+    public boolean isRed;
+
+    
+StructPublisher<Pose3d> publisherF = NetworkTableInstance.getDefault()
+.getStructTopic("MyPose VF", Pose3d.struct).publish();
+
+
+StructPublisher<Pose3d> publisherB = NetworkTableInstance.getDefault()
+.getStructTopic("MyPose VB", Pose3d.struct).publish();
 
     // private double distanceFront = 1000;
     // private double distanceBack = 1000;
@@ -85,6 +97,8 @@ public Pose3d pose2D3D (Pose2d pose2d) {
       
       frontPose = new Pose2d();
       backPose = new Pose2d();
+      
+      isRed = DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Red;
         // visionSim.addVisionTargets(visionTarget);
         // AprilTagFieldLayout tagLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
         // visionSim.addAprilTags(tagLayout);
@@ -102,9 +116,8 @@ public Pose3d pose2D3D (Pose2d pose2d) {
     }
 
     public int closestTag() {
-    boolean tempVisionTest = DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Red;
     double lowest = 1000;
-    if (tempVisionTest) {
+    if (isRed) {
       for (int i = 0; i < 6; i++) {
         if (getDistanceFromAprilTag(i+6) < lowest) {
           lowest = getDistanceFromAprilTag(i+6);
@@ -227,9 +240,25 @@ public Pose3d pose2D3D (Pose2d pose2d) {
       return isInMap(currentPose);
     }
 
+    public Vector<N3> modVisionStdDevsF(double modnum1, double modnum2) {
+      return VecBuilder.fill(Math.max(modnum1*distanceFront, modnum2), Math.max(modnum1*distanceFront, modnum2), Units.degreesToRadians(10000000));
+    }
+
+    
+    public Vector<N3> modVisionStdDevsB(double modnum1, double modnum2) {
+      return VecBuilder.fill(Math.max(modnum1*distanceFront, modnum2), Math.max(modnum1*distanceFront, modnum2), Units.degreesToRadians(10000000));
+    }
+ 
+private Pose2d flipPose(Pose2d pose) {
+    Translation2d center = new Translation2d(8.75, 4.25);
+    Translation2d poseTranslation = pose.getTranslation();
+    poseTranslation = poseTranslation.rotateAround(center, Rotation2d.k180deg);
+    return new Pose2d(poseTranslation, pose.getRotation().rotateBy(Rotation2d.k180deg));
+}
+
+
       /// a thing to select between bothvisions, if seen on both, pick closer
     public void periodic() {
-      
       // distanceFront = frontTable.getDoubleArray(new double[5])[2];
 
       // distanceBack = frontTable.getDoubleArray(new double[5])[2];
@@ -291,41 +320,84 @@ public Pose3d pose2D3D (Pose2d pose2d) {
       .getEntry("targetpose_robotspace")
       .getDoubleArray(new double[5])[2];
 
+      distanceBack = NetworkTableInstance.getDefault()
+      .getTable("limelight-back")
+      .getEntry("targetpose_robotspace")
+      .getDoubleArray(new double[5])[2];
+
       SmartDashboard.putBoolean("llB", backLimelightConnected);
       SmartDashboard.putBoolean("llF", frontLimelightConnected);
       SmartDashboard.putNumber("disf", distanceFront);
+      SmartDashboard.putNumber("disb", distanceBack);
 
-      if (frontLimelightConnected && distanceFront <= 100) {
-        // jsonResults = LimelightHelpers.getLatestResults(VisionConfig.POSE_LIMELIGHT);
+    //   if (frontLimelightConnected && distanceFront <= 2) {
+    //     // jsonResults = LimelightHelpers.getLatestResults(VisionConfig.POSE_LIMELIGHT);
 
-        // estimatePose = LimelightHelpers.getBotPose2d_wpiBlue("limelight-front");
-        LimelightHelpers.SetRobotOrientation("limelight-front", PoseEstimator.getInstance().getOdometryPose().getRotation().getDegrees(), 0, 0, 0, 0, 0);
-        // estimatePose = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight").pose;
-        LimelightHelpers.PoseEstimate frontEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight-front");
+    //     // estimatePose = LimelightHelpers.getBotPose2d_wpiBlue("limelight-front");
+    //     if (isRed) {
+    //       LimelightHelpers.SetRobotOrientation("limelight-front", PoseEstimator.getInstance().getOdometryPose().getRotation().getDegrees()-180, 0, 0, 0, 0, 0);
+          
+    //     LimelightHelpers.PoseEstimate frontEstimate = LimelightHelpers.getBotPoseEstimate_wpiRed_MegaTag2("limelight-front");
+                
+    //   if (visionAccurate(frontEstimate.pose)) {
+    //     // Blue alliance means origin is bottom right of the field
+    //       // getTotalLatency("limelight-front");
+    //     frontPose = flipPose(frontEstimate.pose);
+    //   }
 
+    //       // LimelightHelpers.SetRobotOrientation("limelight-front", PoseEstimator.getInstance().getOdometryPose().getRotation().getDegrees(), 0, 0, 0, 0, 0);
+    //     }
+    //     else {
+    //       LimelightHelpers.SetRobotOrientation("limelight-front", PoseEstimator.getInstance().getOdometryPose().getRotation().getDegrees(), 0, 0, 0, 0, 0);
+          
+    //     LimelightHelpers.PoseEstimate frontEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight-front");
+                
+    //   if (visionAccurate(frontEstimate.pose)) {
+    //     // Blue alliance means origin is bottom right of the field
+    //       // getTotalLatency("limelight-front");
+    //     frontPose = frontEstimate.pose;
+    //   }
+
+    //     }
         
-      if (visionAccurate(frontEstimate.pose)) {
-        // Blue alliance means origin is bottom right of the field
-          // getTotalLatency("limelight-front");
-        frontPose = frontEstimate.pose;
-      }
 
-    }
-    else {
-      frontPose = null;
-    }
+    // }
+    // else {
+    //   frontPose = null;
+    // }
 
-    if (backLimelightConnected) {
-      LimelightHelpers.SetRobotOrientation("limelight-back", PoseEstimator.getInstance().getOdometryPose().getRotation().getDegrees(), 0, 0, 0, 0, 0);
-      LimelightHelpers.PoseEstimate backEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight-back");
+    // if (backLimelightConnected && distanceFront <= 4.5) {
+    //   if (isRed) {
+    //     LimelightHelpers.SetRobotOrientation("limelight-back", PoseEstimator.getInstance().getOdometryPose().getRotation().getDegrees()-180, 0, 0, 0, 0, 0);
+        
+    //   LimelightHelpers.PoseEstimate backEstimate = LimelightHelpers.getBotPoseEstimate_wpiRed_MegaTag2("limelight-back");
 
-      if (visionAccurate(backEstimate.pose)) {
-        backPose = backEstimate.pose;
-      }
-    }
-    else {
-      backPose = null;
-    }
+    //   if (visionAccurate(backEstimate.pose)) {
+    //     backPose = flipPose(backEstimate.pose);
+    //   }
+    //     // LimelightHelpers.SetRobotOrientation("limelight-back", PoseEstimator.getInstance().getOdometryPose().getRotation().getDegrees(), 0, 0, 0, 0, 0);
+    //   }
+    //   else {
+    //     LimelightHelpers.SetRobotOrientation("limelight-back", PoseEstimator.getInstance().getOdometryPose().getRotation().getDegrees(), 0, 0, 0, 0, 0);
+        
+    //   LimelightHelpers.PoseEstimate backEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight-back");
+
+    //   if (visionAccurate(backEstimate.pose)) {
+    //     backPose = backEstimate.pose;
+    //   }
+    //   }
+    // }
+    // else {
+    //   backPose = null;
+    // }
+
+    // if (frontPose != null) {
+
+    //   publisherF.set(pose2D3D(frontPose));
+    // }
+    // if (backPose != null){
+    // publisherB.set(pose2D3D(backPose));
+    // }
 
   }
   

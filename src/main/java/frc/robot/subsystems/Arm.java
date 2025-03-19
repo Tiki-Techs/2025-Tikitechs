@@ -21,14 +21,14 @@ public class Arm extends SubsystemBase{
     public TalonFX m_Follower = new TalonFX(11);
     public Follower follower = new Follower(12, false);
     public PIDController pid = new PIDController(0.020, 0, 0.0000); // TUNE PID, went from 14 to 20 just now
-    public DutyCycleEncoder degEncoder = new DutyCycleEncoder(1, 360, 149.14728);
+    public DutyCycleEncoder degEncoder = new DutyCycleEncoder(1, 360, -30);
     // public DutyCycleEncoder degEncoder = new DutyCycleEncoder(1);
     private final LinearInterpolator interpolator = new LinearInterpolator();
     private PolynomialSplineFunction m_armInterpolatorGI;
     private PolynomialSplineFunction m_armInterpolatorBumper;
 
     // LOGIC VARIABLES
-    public double realEncoderValue;
+    public double realEncoderValue = 12;
     public double throughboreValue;
     public double realEncoderValue2;
     public double desiredEncoderValue;
@@ -40,6 +40,7 @@ public class Arm extends SubsystemBase{
     public double speed = 0;
     public double tol = 2.5;
     public boolean hasAlgae = false; // SHOULD NOT NEED
+    // public boolean thereHandoff = false;
 
     // SETPOINT VARIABLES
     public double coralFeeder = 5;
@@ -48,12 +49,14 @@ public class Arm extends SubsystemBase{
     public double l2;
     public double l3 = 200;
     public double l4 = 414;
+    public double modS = 0;
     public double algaeLow;
     public double algaeHigh;
     public boolean positiveUp;
     public double down;
     public double up;
     public static boolean there;
+    public boolean testHandoff = false;
 
     // CLASS CONSTRUCTOR, CALLED ON INITIALIZATION OF CLASS (DEPLOYMENT OF CODE IF CLASS IS CREATED IN ROBOT CONTAINER).
     public Arm(){
@@ -140,6 +143,7 @@ public class Arm extends SubsystemBase{
         // SmartDashboard.putNumber("Arm value", m_armInterpolator.value(Math.abs(RobotContainer.m_elevator.encoderValue)));
         // IF THE ARM BEGAN CCW AND IS BETWEEN -160 AND -140 (IN THE LOWER RIGHT QUADRANT), CANNOT MOVE FURTHER CCW,
         // VICE VERSA. THIS PREVENTS TWISTING OF THE INTAKE WIRES.
+        
         if (((isCCW == 1) && ((MathUtil.applyDeadband(realEncoderValue+165, 15) == 0)) || (realEncoderValue2 > 0 && realEncoderValue2 < 90)
          || (((realEncoderValue > m_armInterpolatorBumper.value(Math.abs(RobotContainer.m_elevator.encoderValue))) && RobotContainer.m_groundintake.clearArmOutside) || (realEncoderValue > m_armInterpolatorGI.value(Math.abs(RobotContainer.m_elevator.encoderValue))) && !RobotContainer.m_groundintake.clearArmOutside)
          )) {
@@ -150,9 +154,19 @@ public class Arm extends SubsystemBase{
          )) {
             canLeft = 0;
         }
+        
+        if ((desiredEncoderValue < -m_armInterpolatorGI.value(Math.abs(RobotContainer.m_elevator.encoderValue))) && (MathUtil.applyDeadband(desiredEncoderValue + m_armInterpolatorGI.value(Math.abs(RobotContainer.m_elevator.encoderValue)), 7) == 0) && (!RobotContainer.m_groundintake.clearArmOutside)) {
+            modS = 0.06;
+            canLeft = 1;
+        }
+        else {
+            modS = 0.5;
+        }
+        SmartDashboard.putNumber("mods", modS);
+
 
         // GETS RIGHT JOYSTICK X VALUE OF THE MECH CONTROLLER IF IT IS MOVED PAST A CERTAIN RANGE, OTHERWISE 0.
-        double rightX = -MathUtil.applyDeadband(RobotContainer.m_mechController.getRightX(), 0.15);
+        double rightX = -MathUtil.applyDeadband(RobotContainer.m_mechController.getRightY(), 0.15);
         if (isCCW == 1) {
             realEncoderValue2 = Math.abs(realEncoderValue);
         }
@@ -236,7 +250,7 @@ public class Arm extends SubsystemBase{
             m_Leader.set(0);
         }
         else {
-            m_Leader.set(speed*0.5);
+            m_Leader.set(speed*modS);
         }
 
         // IF MEANT TO RUMBLE, WILL CHECK WHETHER OR NOT THE POSITION IS WITHIN A CERTAIN RANGE OF THE DESIRED POSITION.
@@ -246,6 +260,13 @@ public class Arm extends SubsystemBase{
         }
         else {
             there = false;
+        }
+
+        if (MathUtil.applyDeadband(realEncoderValue2+180, tol) == 0) {
+            testHandoff = true;
+        }
+        else {
+            testHandoff = false;
         }
         // SmartDashboard.putBoolean("there arm", there);
         // if (tryRumble && there){

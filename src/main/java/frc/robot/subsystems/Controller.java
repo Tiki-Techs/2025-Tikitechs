@@ -33,10 +33,10 @@ public class Controller extends SubsystemBase{
     // public static double[] elevSafety2 = {0, 0.0000001, 5.58, 9.508, 14.9, 20.27, 25.06, 31.6, 38.31, 39.55, 53.68, 60.44, 74.42, 83.35, 102.3, 105}; 
     // public static double[] armSafety2 =  {0, 86, 91.6, 95.1, 100.4, 104, 107.8, 113.4, 119.7, 125.4, 129.27, 129.3, 137.3, 139.8, 144, 180};
     
-    public static double[] elevSafetyGI = {0, 13.616284, 17.2061, 19.22276, 21.196964, 24.593444, 27.374312, 29.62448, 30.413248, 30.5964, 31.23324, 32.20537228, 1000.9472}; 
+    public static double[] elevSafetyGI = {0, 12.616284, 16.2061, 18.22276, 20.196964, 23.593444, 26.374312, 28.62448, 29.413248, 29.5964, 30.23324, 31.20537228, 1000.9472}; 
     public static double[] armSafetyGI =  {91.0, 91.001, 99.3, 104.9, 108.9, 117.2, 122.6, 128.4, 131.4, 137.2, 147.1, 180, 180.1};
 
-    public static double[] elevSafetyGI2 = {0, 0.001, 11.951364, 14.54118, 16.55784, 18.532044, 22.353084, 24.709392, 26.95956, 28.148328, 29.93148, 30.56832, 30.56832001};
+    public static double[] elevSafetyGI2 = {0, 0.001, 11.751364, 14.34118, 16.35784, 18.432044, 22.253084, 24.509392, 26.75956, 27.948328, 29.73148, 30.36832, 30.36832001};
     public static double[] armSafetyGI2 =  {0, 91.0, 91.001, 99.3, 104.9, 108.9, 117.2, 122.6, 128.4, 131.4, 137.2, 147.1, 180};
 
     public static double[] elevSafetyBumper = {0, 1.783152, 3.651216, 6.028752, 7.620852, 9.913476, 13.501008, 14.137848, 15.793632, 17.895204, 20.251512, 1000.9472}; 
@@ -146,6 +146,24 @@ public class Controller extends SubsystemBase{
                 }, this);
 
     }
+
+    public Command handoff3(){
+        return new RunCommand(
+                () -> {
+                    if (RobotContainer.m_groundintake.getHave()) {
+                        if (!arm.testHandoff && !elevator.testHandoff) {
+                        setpoint2(-180, elevator.elevarmground+5.5);
+                        }
+                        else {
+                            setpoint2(-180, elevator.elevarmground); 
+                        }
+                    Intake.handoff = true;
+                    GroundIntake.handoff = true;
+                    }
+                }, this);
+
+    }
+
 
     
     public void handoffFalse(){

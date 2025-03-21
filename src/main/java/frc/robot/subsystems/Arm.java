@@ -9,6 +9,8 @@ import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -17,10 +19,11 @@ import frc.robot.RobotContainer;
 public class Arm extends SubsystemBase{
 
     // ACTUAL CLASSES
-    public TalonFX m_Leader = new TalonFX(12); // PUT MOTORS BACK ON BRAKE MODE
-    public TalonFX m_Follower = new TalonFX(11);
+    public TalonFX armLeader = new TalonFX(12); // FIGURE OUT MOTION MAGIC, SWITCH TO SHUFFLEBOARD(?)
+    public TalonFX armFollower = new TalonFX(11);
     public Follower follower = new Follower(12, false);
-    public PIDController pid = new PIDController(0.020, 0, 0.0000); // TUNE PID, went from 14 to 20 just now
+    public ProfiledPIDController pid = new ProfiledPIDController(0.020, 0, 0.000, new TrapezoidProfile.Constraints(0, 0)); // TUNE PID, went from 14 to 20 just now
+    // public PIDController pid = new PIDController(0.020, 0, 0.0000); // TUNE PID, went from 14 to 20 just now
     public DutyCycleEncoder degEncoder = new DutyCycleEncoder(1, 360, -30);
     // public DutyCycleEncoder degEncoder = new DutyCycleEncoder(1);
     private final LinearInterpolator interpolator = new LinearInterpolator();
@@ -28,41 +31,32 @@ public class Arm extends SubsystemBase{
     private PolynomialSplineFunction m_armInterpolatorBumper;
 
     // LOGIC VARIABLES
-    public double realEncoderValue = 12;
-    public double throughboreValue;
-    public double realEncoderValue2;
-    public double desiredEncoderValue;
+    public double armPosition = 12;
+    // public double throughboreValue;
+    public double armPositionTransformed;
+    public double armSetpoint;
+    public double armPseudoSetpoint;
     public boolean tryRumble = false;
     public boolean readyRumble = false;
     public double canRight = 0;
     public double canLeft = 0;
     public double isCCW = -456787;
     public double speed = 0;
-    public double tol = 2.5;
-    public boolean hasAlgae = false; // SHOULD NOT NEED
-    // public boolean thereHandoff = false;
+    public double armTolerance = 2.5;
 
-    // SETPOINT VARIABLES
-    public double coralFeeder = 5;
-    public double algaeGround = 1.5;
-    public double l1;
-    public double l2;
-    public double l3 = 200;
-    public double l4 = 414;
     public double modS = 0;
-    public double algaeLow;
-    public double algaeHigh;
+    // public double algaeLow;
+    // public double algaeHigh;
     public boolean positiveUp;
     public double down;
-    public double up;
-    public static boolean there;
+    public static boolean armThere;
     public boolean testHandoff = false;
 
     // CLASS CONSTRUCTOR, CALLED ON INITIALIZATION OF CLASS (DEPLOYMENT OF CODE IF CLASS IS CREATED IN ROBOT CONTAINER).
     public Arm(){
-        m_Follower.setControl(follower);
+        armFollower.setControl(follower);
         // ON DEPLOYMENT, SETPOINT IS SET TO CURRENT POINT TO PREVENT MOVEMENT.
-        desiredEncoderValue = transform(degEncoder.get());
+        armSetpoint = transform(degEncoder.get());
         // INTERPOLATOR AND SPLINE FUNCTION TRANSFORM GIVEN SETS OF VALUES TO A FUNCTION. THE TYPE OF
         // FUNCTION (CUBIC, SQUARED, ETC) CAN CHANGE. USED TO DETERMINE WHAT ARM VALUES ARE SAFE BASED
         // ON THE CURRENT ELEVATOR POSITION.
@@ -80,7 +74,7 @@ public class Arm extends SubsystemBase{
     }
 
     public void kill () {
-        m_Leader.set(0);
+        armLeader.set(0);
     }
     // public boolean there () {
 
@@ -88,7 +82,7 @@ public class Arm extends SubsystemBase{
 
     // SETTER TO CHANGE SETPOINT FROM OTHER CLASSES.
     public void setpoint(double setpoint){
-        this.desiredEncoderValue = setpoint;
+        this.armSetpoint = setpoint;
     }
 
     // LOGIC FOR WHETHER OR NOT THE CONTROLLER IS MEANT TO RUMBLE. SEE ARM PERIODIC, CONTROLLER PERIODIC, AND OTHER REFERENCES.
@@ -114,9 +108,12 @@ public class Arm extends SubsystemBase{
         // TRANSFORMS THROUGHBORE VALUE FOR PID USAGE. TOP MIDDLE BECOMES 0, LEFT MIDDLE BECOMES 90, RIGHT MIDDLE
         // BECOMES 90, BOTTOM MIDDLE BECOMES 180/-180.
         // SmartDashboard.putNumber("through", degEncoder.get());
-        throughboreValue = degEncoder.get();
-        realEncoderValue = transform(degEncoder.get());
-        realEncoderValue2 = realEncoderValue;
+        // throughboreValue = degEncoder.get();
+
+        // transform makes the throughbore give 180 to -180 instead of 0 to 360. think this has to do with arm wrapping logic, not really necessary now (could just change throughbore zero?)
+        armPosition = transform(degEncoder.get());
+        armPositionTransformed = armPosition;
+        armPseudoSetpoint = -500;
         // Checks if able to move left and right (manual), needs to implement stuff with elevator map and whatnot
         // if (realEncoderValue){
             // canLeft = 0;
@@ -133,57 +130,140 @@ public class Arm extends SubsystemBase{
 
         // WHEN WITHIN 130 DEGREES OF THE TOP ON EITHER SIDE, SETS ISCCW. THIS WAY, ISCCW IS NOT SET IMMEDIATELY
         // WHEN GOING PAST THE BOTTOM MIDDLE
-        if (realEncoderValue < 90 && realEncoderValue > 0){
+
+        
+
+
+
+        // tells which side the arm is on, used to prevent wrapping. only changes when in the top half (to prevent arm thinking it came from the other side after passing the bottom)
+
+
+
+
+        if (armPosition < 90 && armPosition > 0){
             isCCW = 1;
         }
-        else if (realEncoderValue > -90 && realEncoderValue < 0) {
+        else if (armPosition > -90 && armPosition < 0) {
             isCCW = -1;
         }
         this.down = 180*isCCW;
+
+
+
+
+
+
+
+
+
+
+
+
         // SmartDashboard.putNumber("Arm value", m_armInterpolator.value(Math.abs(RobotContainer.m_elevator.encoderValue)));
         // IF THE ARM BEGAN CCW AND IS BETWEEN -160 AND -140 (IN THE LOWER RIGHT QUADRANT), CANNOT MOVE FURTHER CCW,
         // VICE VERSA. THIS PREVENTS TWISTING OF THE INTAKE WIRES.
         
-        if (((isCCW == 1) && ((MathUtil.applyDeadband(realEncoderValue+165, 15) == 0)) || (realEncoderValue2 > 0 && realEncoderValue2 < 90)
-         || (((realEncoderValue > m_armInterpolatorBumper.value(Math.abs(RobotContainer.m_elevator.encoderValue))) && RobotContainer.m_groundintake.clearArmOutside) || (realEncoderValue > m_armInterpolatorGI.value(Math.abs(RobotContainer.m_elevator.encoderValue))) && !RobotContainer.m_groundintake.clearArmOutside)
+
+        // checks: if arm comes from one side and tries to wrap, cannot move; not sure what the second part is; if the arm's position is lower than what is determined to
+        // be safe by the interpolator in controller, cannot move (checks individually for whether or not ground intake is cleared); 
+
+
+
+
+        if (((isCCW == 1) && ((MathUtil.applyDeadband(armPosition+165, 15) == 0)) || (armPositionTransformed > 0 && armPositionTransformed < 90)
+         || (((armPosition > m_armInterpolatorBumper.value(Math.abs(RobotContainer.m_elevator.elevatorPosition))) && RobotContainer.m_groundintake.clearArmOutside) || (armPosition > m_armInterpolatorGI.value(Math.abs(RobotContainer.m_elevator.elevatorPosition))) && !RobotContainer.m_groundintake.clearArmOutside)
          )) {
             canRight = 0;
         }
-        if ((((isCCW == -1) && (((MathUtil.applyDeadband(realEncoderValue-165, 15) == 0))))
-         || (((realEncoderValue < -m_armInterpolatorBumper.value(Math.abs(RobotContainer.m_elevator.encoderValue))) && RobotContainer.m_groundintake.clearArmOutside) || (realEncoderValue < -m_armInterpolatorGI.value(Math.abs(RobotContainer.m_elevator.encoderValue))) && !RobotContainer.m_groundintake.clearArmOutside)
+
+
+
+
+
+
+
+
+        // same as above
+
+
+
+
+        if ((((isCCW == -1) && (((MathUtil.applyDeadband(armPosition-165, 15) == 0))))
+         || (((armPosition < -m_armInterpolatorBumper.value(Math.abs(RobotContainer.m_elevator.elevatorPosition))) && RobotContainer.m_groundintake.clearArmOutside) || (armPosition < -m_armInterpolatorGI.value(Math.abs(RobotContainer.m_elevator.elevatorPosition))) && !RobotContainer.m_groundintake.clearArmOutside)
          )) {
             canLeft = 0;
         }
+
+
+
+
+
+
+
+
+        // if the arm is within 7 degrees of an "unsafe" value as determined by the controller's interpolator, speed is decreased to 6 % from 50%. This decreases constant starting and stopping, which weakens rivets and is just generally bad practice. should instead use a profiled pid or a slew rate limiter?
+
+
         
-        if ((desiredEncoderValue < -m_armInterpolatorGI.value(Math.abs(RobotContainer.m_elevator.encoderValue))) && (MathUtil.applyDeadband(desiredEncoderValue + m_armInterpolatorGI.value(Math.abs(RobotContainer.m_elevator.encoderValue)), 7) == 0) && (!RobotContainer.m_groundintake.clearArmOutside)) {
+        if ((armSetpoint < -m_armInterpolatorGI.value(Math.abs(RobotContainer.m_elevator.elevatorPosition))) && (MathUtil.applyDeadband(armSetpoint + m_armInterpolatorGI.value(Math.abs(RobotContainer.m_elevator.elevatorPosition)), 7) == 0) && (!RobotContainer.m_groundintake.clearArmOutside)) {
             modS = 0.06;
             canLeft = 1;
         }
         else {
             modS = 0.5;
         }
+
+
+
+
+
+
+
+
+
+
+
         SmartDashboard.putNumber("mods", modS);
 
 
-        // GETS RIGHT JOYSTICK X VALUE OF THE MECH CONTROLLER IF IT IS MOVED PAST A CERTAIN RANGE, OTHERWISE 0.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         double rightX = -MathUtil.applyDeadband(RobotContainer.m_mechController.getRightY(), 0.15);
+
+
+        // weird stuff about arm wrapping i forget
         if (isCCW == 1) {
-            realEncoderValue2 = Math.abs(realEncoderValue);
+            armPositionTransformed = Math.abs(armPosition);
         }
         else {
-            realEncoderValue2 = -Math.abs(realEncoderValue);
+            armPositionTransformed = -Math.abs(armPosition);
         }
-        // RIGHT JOYSTICK IS USED FOR MANUAL CONTROL. IF NOT USING MANUAL CONTROL, SETS SPEED BASED ON PID.
+
+
+
+        // if not using right joystick, use pid control with setpoints
         if (rightX==0) {
             // LOGIC PREVENTING TWISTING OF WIRES.
             if (isCCW == 1) {
-                realEncoderValue2 = Math.abs(realEncoderValue);
+                armPositionTransformed = Math.abs(armPosition);
             }
             else {
-                realEncoderValue2 = -Math.abs(realEncoderValue);
+                armPositionTransformed = -Math.abs(armPosition);
             }
             // SmartDashboard.putString("test", "PID");
-            speed = pid.calculate(realEncoderValue2, desiredEncoderValue);
+            speed = pid.calculate(armPositionTransformed, armSetpoint);
             // LOGIC THAT SHOULD NOT NEED TO BE USED.
             if (speed > 0){
                 speed *= canRight;
@@ -197,7 +277,9 @@ public class Arm extends SubsystemBase{
             // m_Leader.set(speed);
             // SmartDashboard.putString("Control", "Not Manual");
         }
-        // IF MANUALLY CONTROLLING:
+
+
+        // if manually controlling, set a speed based on the controller input.
         else{
             // SHOULD NOT RUMBLE WHEN AT SETPOINT (SEE BELOW, SEE CONTROLLER PERIODIC)
             tryRumble = false;
@@ -210,14 +292,14 @@ public class Arm extends SubsystemBase{
                 else {
                     speed = rightX*canLeft*1; // ccw and joystick right
                 }
-            if (isCCW == 1 && realEncoderValue < 0) {
-                desiredEncoderValue = 180;
+            if (isCCW == 1 && armPosition < 0) {
+                armSetpoint = 180;
             }
-            else if (isCCW == -1 && realEncoderValue > 0){
-                desiredEncoderValue = -180;
+            else if (isCCW == -1 && armPosition > 0){
+                armSetpoint = -180;
             }
             else {
-                desiredEncoderValue = realEncoderValue2;
+                armSetpoint = armPositionTransformed;
             }
             // else {
             //     if (rightX > 0) {
@@ -239,30 +321,36 @@ public class Arm extends SubsystemBase{
             // desiredEncoderValue = realEncoderValue2;
             // SmartDashboard.putString("Control", "Manual");
         }
-        // SETS MOTORS TO WHATEVER SPEED WAS DETERMINED IN THE PREVIOUS CODE
+
+
+
+        // prevents speed from passing 1 so modification can function
         if (speed > 1) {
             speed = 1;
         }
         else if (speed < -1) {
             speed = -1;
         }
-        if (isCCW == 0) {
-            m_Leader.set(0);
+        if (isCCW == -456787) {
+            armLeader.set(0);
         }
         else {
-            m_Leader.set(speed*modS);
+            armLeader.set(speed*modS);
         }
 
         // IF MEANT TO RUMBLE, WILL CHECK WHETHER OR NOT THE POSITION IS WITHIN A CERTAIN RANGE OF THE DESIRED POSITION.
         // IF SO, WILL SET READY RUMBLE TO TRUE. SEE CONTROLLER PERIODIC.
-        if (MathUtil.applyDeadband(realEncoderValue2+180, tol) == 0) {
-            there = true;
+
+
+        // checks if the arm is in the correct state for handoff, for both(?)
+        if (MathUtil.applyDeadband(armPositionTransformed+180, armTolerance) == 0) {
+            armThere = true;
         }
         else {
-            there = false;
+            armThere = false;
         }
 
-        if (MathUtil.applyDeadband(realEncoderValue2+180, tol) == 0) {
+        if (MathUtil.applyDeadband(armPositionTransformed+180, armTolerance) == 0) {
             testHandoff = true;
         }
         else {
@@ -276,10 +364,10 @@ public class Arm extends SubsystemBase{
         //         readyRumble = false;
         //     }
 
-        SmartDashboard.putNumber("(Arm) True encoder value", realEncoderValue);
-        SmartDashboard.putNumber("(Arm) True encoder value2", realEncoderValue2);
+        SmartDashboard.putNumber("(Arm) True encoder value", armPosition);
+        SmartDashboard.putNumber("(Arm) True encoder value2", armPositionTransformed);
         SmartDashboard.putNumber("down ARM val", down);
-        SmartDashboard.putNumber("(Arm) True setpoint elev", desiredEncoderValue);
+        SmartDashboard.putNumber("(Arm) True setpoint elev", armSetpoint);
         SmartDashboard.putNumber("Left", isCCW);
         SmartDashboard.putNumber("Can Left", canLeft);
         SmartDashboard.putNumber("Can Right", canRight);

@@ -21,10 +21,7 @@ import frc.robot.subsystems.Elevator;
 public class Controller extends SubsystemBase{
     public Elevator elevator;
     public Arm arm;
-    public Intake intake;
-    public boolean isDriving = false;
-    public final Timer m_Timer = new Timer();
-    public static double time;
+    public Manipulator manipulator;
 
     // public boolean readyOutput = false;
     // public static double[] elevSafety = {0, 5.58, 9.508, 14.9, 20.27, 25.06, 31.6, 38.31, 39.55, 53.68, 60.44, 74.42, 83.35, 102.3, 109, 240}; 
@@ -54,10 +51,10 @@ public class Controller extends SubsystemBase{
     // DigitalInput limitSwitch = new DigitalInput(200);  // check THE NEW INTAKE LIMIT SWITCH. COULD BE MADE IN INTAKE INSTEAD
 
 
-    public Controller (Elevator elevator, Arm arm, Intake intake) {
+    public Controller (Elevator elevator, Arm arm, Manipulator manipulator) {
         this.elevator = elevator;
         this.arm = arm;
-        this.intake = intake;
+        this.manipulator = manipulator;
     }
     // public Controller (Elevator elevator, Arm arm) {
     //     this.elevator = elevator;
@@ -100,7 +97,7 @@ public class Controller extends SubsystemBase{
     public void setpointElevatorArmElevator(double elevatorPoint, double armPoint, double elevatorPoint2){
                     elevator.setpoint(elevatorPoint);
                     arm.setpoint(armPoint);
-                    if (arm.there && RobotContainer.m_groundintake.handoffThere) {
+                    if (arm.armThere && RobotContainer.m_groundintake.handoffThere) {
                         elevator.setpoint(elevatorPoint2);
                     }
                     // rumble(true);
@@ -128,8 +125,8 @@ public class Controller extends SubsystemBase{
         return new InstantCommand(
                 () -> {
                     if (RobotContainer.m_groundintake.getHave()) {
-                        setpoint2(-180, elevator.elevarmground+5.5);
-                    Intake.handoff = true;
+                        setpoint2(-180, elevator.elevHandoffPosition+5.5);
+                    Manipulator.handoff = true;
                     GroundIntake.handoff = true;
                     }
                 }, this);
@@ -141,7 +138,7 @@ public class Controller extends SubsystemBase{
         return new InstantCommand(
                 () -> {
                     if (RobotContainer.m_groundintake.getHave()) {
-                        setpoint2(-180, elevator.elevarmground);
+                        setpoint2(-180, elevator.elevHandoffPosition);
                     }
                 }, this);
 
@@ -152,12 +149,12 @@ public class Controller extends SubsystemBase{
                 () -> {
                     if (RobotContainer.m_groundintake.getHave()) {
                         if (!arm.testHandoff && !elevator.testHandoff) {
-                        setpoint2(-180, elevator.elevarmground+5.5);
+                        setpoint2(-180, elevator.elevHandoffPosition+5.5);
                         }
                         else {
-                            setpoint2(-180, elevator.elevarmground); 
+                            setpoint2(-180, elevator.elevHandoffPosition); 
                         }
-                    Intake.handoff = true;
+                    Manipulator.handoff = true;
                     GroundIntake.handoff = true;
                     }
                 }, this);
@@ -167,7 +164,7 @@ public class Controller extends SubsystemBase{
 
     
     public void handoffFalse(){
-                    Intake.handoff = false;
+                    Manipulator.handoff = false;
                     GroundIntake.handoff = false;
                     RobotContainer.m_groundintake.have = false;
     }
@@ -175,7 +172,7 @@ public class Controller extends SubsystemBase{
     public Command handoffFalse2(){
         return new InstantCommand(
             () -> {
-                    Intake.handoff = false;
+                    Manipulator.handoff = false;
                     GroundIntake.handoff = false;
                     RobotContainer.m_groundintake.have = false;
             }, this);
@@ -192,10 +189,6 @@ public class Controller extends SubsystemBase{
 
     }
 
-    public void timerStop(){
-        m_Timer.reset();
-    }
-  
     @Override
     public void periodic (){ // add in stuff based on vision, too?
         // UNFINISHED CODE FOR GOING TO A SETPOINT WHEN DRIVING. MAY NOT USED

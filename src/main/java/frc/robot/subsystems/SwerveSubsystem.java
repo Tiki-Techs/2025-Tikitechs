@@ -125,18 +125,6 @@ StructPublisher<Pose3d> publisher = NetworkTableInstance.getDefault()
         // Do this in either robot or subsystem init
         SmartDashboard.putData("Field", m_field);
 
-        // // BLUE MID POSITION
-        // swerveDrive.resetOdometro23y(new Pose2d(10.3, 4, new Rotation2d())); 
-        // // BLUE LEFT POSITION
-        // swerveDrive.resetOdometry(new Pose2d(7.2, 4, new Rotation2d())); 
-        // // BLUE RIGHT POSITION
-        // swerveDrive.resetOdometry(new Pose2d(7.2, 4, new Rotation2d())); 
-        // // RED MID POSITION
-        // swerveDrive.resetOdometry(new Pose2d(7.2, 4, new Rotation2d(180))); 
-        // // RED LEFT POSITION
-        // swerveDrive.resetOdometry(new Pose2d(7.2, 4, new Rotation2d(180))); 
-        // // RED RIGHT POSITION
-        // swerveDrive.resetOdometry(new Pose2d(7.2, 4, new Rotation2d(180))); 
         swerveDrive.setMaximumAllowableSpeeds(3, 3);
 
     // Load the RobotConfig from the GUI settings. You should probably
@@ -365,7 +353,7 @@ swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(
    
   public double calcDrive() {
     // driveCoeff = 0.2 + (0.8 * (50.9472-RobotContainer.m_elevator.encoderValue));
-    driveCoeff = 0.2 + (0.8 * (25.9472-RobotContainer.m_elevator.encoderValue));
+    driveCoeff = 0.2 + (0.8 * (25.9472-RobotContainer.m_elevator.elevatorPosition));
     if (driveCoeff > 1) {
       driveCoeff = 1;
     }

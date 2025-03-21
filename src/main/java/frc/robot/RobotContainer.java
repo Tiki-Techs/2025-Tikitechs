@@ -13,7 +13,7 @@ import frc.robot.subsystems.Controller;
 import frc.robot.subsystems.Controller;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.GroundIntake;
-import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.Manipulator;
 import frc.robot.subsystems.MotorRunnerElevManual;
 // import frc.robot.subsystems.PoseEstimator;
 import frc.robot.subsystems.MotorRunnerArmManual;
@@ -67,19 +67,18 @@ public class RobotContainer {
   // public final MotorRunnerElevManual test1 = new MotorRunnerElevManual();
 
 
-  public static final Intake m_intake = new Intake();
+  public static final Manipulator m_manipulator = new Manipulator();
 
   public static final GroundIntake m_groundintake = new GroundIntake();
 
   // These have to be commented out without jack and ruby
   public static Arm m_arm = new Arm();
   public static final Elevator m_elevator = new Elevator();
-  public static final Controller m_controller = new Controller(m_elevator, m_arm, m_intake);
+  public static final Controller m_controller = new Controller(m_elevator, m_arm, m_manipulator);
 
   // public static PoseEstimator pe = PoseEstimator.getInstance();
   // public static PoseEstimator poseEstimator = new PoseEstimator();
   public static final Vision m_vision = new Vision();
-  // private static final Controller m_controller = new Controller(m_elevator, m_arm, m_intake);
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   public static final CommandXboxController m_driverController = new CommandXboxController(OperatorConstants.kDriverControllerPort); 

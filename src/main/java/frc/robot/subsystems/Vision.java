@@ -99,6 +99,9 @@ public Pose3d pose2D3D (Pose2d pose2d) {
       backPose = new Pose2d();
       
       isRed = DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Red;
+      // if (isRed) {
+      //   fieldLayout.
+      // }
         // visionSim.addVisionTargets(visionTarget);
         // AprilTagFieldLayout tagLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
         // visionSim.addAprilTags(tagLayout);
@@ -250,7 +253,7 @@ public Pose3d pose2D3D (Pose2d pose2d) {
     }
  
 private Pose2d flipPose(Pose2d pose) {
-    Translation2d center = new Translation2d(8.75, 4.25);
+    Translation2d center = fieldLayout.getOrigin().toPose2d().getTranslation();
     Translation2d poseTranslation = pose.getTranslation();
     poseTranslation = poseTranslation.rotateAround(center, Rotation2d.k180deg);
     return new Pose2d(poseTranslation, pose.getRotation().rotateBy(Rotation2d.k180deg));

@@ -18,39 +18,41 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ControllerConstants;
 import frc.robot.RobotContainer;
 
-public class Manipulator extends SubsystemBase{
+public class Manipulator extends SubsystemBase {
     public static TalonFX manipulatorPower = new TalonFX(13);
-
 
     public PIDController pid = new PIDController(0.2, 0, 0);
     public DigitalInput limitSwitch = new DigitalInput(4);
     public double motorValue;
-    public double speed = 0;
     public static boolean have = false;
     public static boolean coral = true;
     public static boolean algae = false;
     public static boolean handoff = false;
+    public boolean drop = false;
     // ADD THE LIMIT SWITCH FOR 4
 
-    public Manipulator(){
+    public Manipulator() {
         // m_leader.set(0.3);
     }
 
-    public void setSpeed(double speed){
+    public void setSpeed(double speed) {
         manipulatorPower.set(speed);
-        this.speed = speed;
     }
 
     @Override
-    public void periodic(){
+    public void periodic() {
+
 
         if (!limitSwitch.get()) {
             if (!have) {
-                if ((MathUtil.applyDeadband(RobotContainer.m_arm.armPositionTransformed-RobotContainer.m_arm.down, 10) == 0) && (MathUtil.applyDeadband(RobotContainer.m_elevator.elevatorPosition-Elevator.elevHandoffLowerLimit, 13) == 0)){
+                if ((MathUtil.applyDeadband(RobotContainer.m_arm.armPositionTransformed - RobotContainer.m_arm.down,
+                        10) == 0)
+                        && (MathUtil.applyDeadband(
+                                RobotContainer.m_elevator.elevatorPosition - Elevator.elevHandoffLowerLimit,
+                                13) == 0)) {
                     coral = true;
                     SmartDashboard.putString("holding", "coral");
-                }
-                else {
+                } else {
                     algae = true;
                     SmartDashboard.putString("holding", "algae");
                 }
@@ -59,12 +61,12 @@ public class Manipulator extends SubsystemBase{
             handoff = false;
             GroundIntake.handoff = false;
             RobotContainer.m_groundintake.have = false;
-        }
-        else {
+        } else {
             have = false;
             coral = false;
             algae = false;
-            
+            drop = false;
+
             SmartDashboard.putString("holding", "nothing");
         }
         SmartDashboard.putBoolean("have", have);
@@ -72,15 +74,24 @@ public class Manipulator extends SubsystemBase{
         // SmartDashboard.putNumber("Intake Actual Speed", motorValue);
         // SmartDashboard.putNumber("Intake Set Speed", speed);
 
+        // if (drop) {
+        // if (RobotContainer.m_arm.testDrop && RobotContainer.m_elevator.testDrop) {
+        // manipulatorPower.set(0.5);
+        // }
+        // }
+
+        // else
+
         if (handoff) {
             manipulatorPower.set(-0.6);
         }
-        
-        else if (MathUtil.applyDeadband(RobotContainer.m_mechController.getRightTriggerAxis(), 0.15) != 0){
+
+        else if (MathUtil.applyDeadband(RobotContainer.m_mechController.getRightTriggerAxis(), 0.15) != 0) {
             // m_Leader.set(Math.signum(RobotContainer.m_driverController.getLeftY()));
-            manipulatorPower.set(RobotContainer.m_mechController.getRightTriggerAxis()*.6);
-            
-            // SmartDashboard.putNumber("right", RobotContainer.m_mechController.getRightTriggerAxis());
+            manipulatorPower.set(RobotContainer.m_mechController.getRightTriggerAxis() * .6);
+
+            // SmartDashboard.putNumber("right",
+            // RobotContainer.m_mechController.getRightTriggerAxis());
         }
 
         else if (have && algae) {
@@ -91,14 +102,15 @@ public class Manipulator extends SubsystemBase{
             manipulatorPower.set(0);
         }
 
-        else if (MathUtil.applyDeadband(RobotContainer.m_mechController.getLeftTriggerAxis(), 0.15) != 0){
+        else if (MathUtil.applyDeadband(RobotContainer.m_mechController.getLeftTriggerAxis(), 0.15) != 0) {
             // m_Leader.set(Math.signum(RobotContainer.m_driverController.getLeftY()));
-            manipulatorPower.set(-RobotContainer.m_mechController.getLeftTriggerAxis()*0.5);
-            // SmartDashboard.putNumber("left", RobotContainer.m_mechController.getLeftTriggerAxis());
+            manipulatorPower.set(-RobotContainer.m_mechController.getLeftTriggerAxis() * 0.5);
+            // SmartDashboard.putNumber("left",
+            // RobotContainer.m_mechController.getLeftTriggerAxis());
         }
-        
+
         else {
-                manipulatorPower.set(0);
-            }
-    }       
+            manipulatorPower.set(0);
+        }
+    }
 }

@@ -15,7 +15,7 @@ import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.GroundIntake;
 import frc.robot.subsystems.Manipulator;
 import frc.robot.subsystems.MotorRunnerElevManual;
-// import frc.robot.subsystems.PoseEstimator;
+import frc.robot.subsystems.PoseEstimator;
 import frc.robot.subsystems.MotorRunnerArmManual;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.Vision;
@@ -77,7 +77,7 @@ public class RobotContainer {
   public static final Controller m_controller = new Controller(m_elevator, m_arm, m_manipulator);
 
   // public static PoseEstimator pe = PoseEstimator.getInstance();
-  // public static PoseEstimator poseEstimator = new PoseEstimator();
+  public static PoseEstimator poseEstimator = new PoseEstimator();
   public static final Vision m_vision = new Vision();
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
@@ -85,11 +85,16 @@ public class RobotContainer {
   public static final CommandXboxController m_mechController = new CommandXboxController(1);
   // private final CommandXboxController m_elevatorController = new CommandXboxController(OperatorConstants.ELEVATOR_GAMEPAD_PORT);
 
-  // private final String middleAuto = "Mid Auto";
-  // private final String l1test = "l1 test";
-  // private final String sourceSideAuto = "Source Side Auto";
-  // private final String middleAuto4 = "Middle Auto 4";
-  // private final String Citrus = "Citrus";
+  private final String centerLeave = "Center Leave";
+  private final String centerReef = "Center Reef";
+  // private final String centerL1 = "Source Side Auto";
+  private final String rightLeave = "Right Leave";
+  private final String rightReef = "Right Reef";
+  private final String rightL1 = "Right L1";
+  private final String leftLeave = "Left Leave";
+  // private final String leftReef = "";
+  private final String leftL1 = "Left L1";
+  private final String l4test = "L4 Test";
  /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     // Configure the trigger bindings
@@ -97,18 +102,24 @@ public class RobotContainer {
     // MAY CAUSE DELAY IN DEPLOYMENT
     
     // NamedCommands.registerCommand("Spit", new AutoAlignTest(drivebase, 0));
-    // NamedCommands.registerCommand("Off", m_groundintake.autoSpitOff());
+    // NamedCommands.registerCommand("Off", m_groundintake.autoSpitOff());   
+    NamedCommands.registerCommand("L4 Setpoint", m_controller.setpoint(-25, 49.33));
+    
+    NamedCommands.registerCommand("L4 Setpoint Drop", m_controller.setpointDrop(-37, 49.33));
 
 
-    // autoChooser = new SendableChooser<Command>();
-    // autoChooser.setDefaultOption("Mid Auto", AutoBuilder.buildAuto(middleAuto));
-    // autoChooser.addOption("l1 test", AutoBuilder.buildAuto(l1test));
-    // autoChooser.addOption("Source Side Auto", AutoBuilder.buildAuto(sourceSideAuto));
-    // autoChooser.addOption("Middle Auto 4", AutoBuilder.buildAuto(middleAuto4));
-    // autoChooser.addOption("Citrus", AutoBuilder.buildAuto(Citrus));
+    autoChooser = new SendableChooser<Command>();
+    autoChooser.setDefaultOption("Center Leave", AutoBuilder.buildAuto(centerLeave));
+    autoChooser.addOption("Center Reef", AutoBuilder.buildAuto(centerReef));
+    autoChooser.addOption("Right Leave", AutoBuilder.buildAuto(rightLeave));
+    autoChooser.addOption("Right Reef", AutoBuilder.buildAuto(rightReef));
+    autoChooser.addOption("Right L1", AutoBuilder.buildAuto(rightL1));
+    autoChooser.addOption("Left Leave", AutoBuilder.buildAuto(leftLeave));
+    autoChooser.addOption("Left L1", AutoBuilder.buildAuto(leftL1));
+    autoChooser.addOption("L4 Test", AutoBuilder.buildAuto(l4test));
 
 
-    autoChooser = AutoBuilder.buildAutoChooser();
+    // autoChooser = AutoBuilder.buildAutoChooser();
     // autoChooser.setDefaultOption("l1 test", driveFieldOrientedAnglularVelocity);;
     SmartDashboard.putData(autoChooser);
 

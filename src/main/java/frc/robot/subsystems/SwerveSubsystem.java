@@ -127,7 +127,8 @@ public class SwerveSubsystem extends SubsystemBase {
     SmartDashboard.putData("Field", m_field);
 
     // swerveDrive.setMaximumAllowableSpeeds(3, 3);
-
+    // swerveDrive.setHeadingCorrection(true);
+    // swerveDrive.setModuleEncoderAutoSynchronize(flipToRed, driveCoeff);
     // Load the RobotConfig from the GUI settings. You should probably
     // store this in your Constants file
 
@@ -265,23 +266,6 @@ public class SwerveSubsystem extends SubsystemBase {
     });
   }
 
-  public Command driveCommandFScaledDown(DoubleSupplier translationX, DoubleSupplier translationY,
-      DoubleSupplier angularRotationX) {
-    return run(() -> {
-
-      Translation2d scaledInputs = SwerveMath.scaleTranslation(new Translation2d(translationX.getAsDouble(),
-          translationY.getAsDouble()), 0.8);
-
-      // Make the robot move
-      swerveDrive.driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(
-          scaledInputs.getX() * 0.2,
-          scaledInputs.getY() * 0.2,
-          swerveDrive.getOdometryHeading().getRadians() + angularRotationX.getAsDouble() * 0.8,
-          swerveDrive.getOdometryHeading().getRadians(),
-          swerveDrive.getMaximumChassisVelocity()));
-    });
-  }
-
   public Command driveCommandR(DoubleSupplier translationX, DoubleSupplier translationY,
       DoubleSupplier angularRotationX) {
     return run(() -> {
@@ -291,9 +275,9 @@ public class SwerveSubsystem extends SubsystemBase {
 
       // Make the robot move
       swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(
-          scaledInputs.getX() * 0.4,
-          scaledInputs.getY() * 0.4,
-          swerveDrive.getOdometryHeading().getRadians() + angularRotationX.getAsDouble() * 0.30,
+          scaledInputs.getX() * 0.2,
+          scaledInputs.getY() * 0.2,
+          swerveDrive.getOdometryHeading().getRadians() + angularRotationX.getAsDouble() * 0.45,
           swerveDrive.getOdometryHeading().getRadians(),
           swerveDrive.getMaximumChassisVelocity()));
     });

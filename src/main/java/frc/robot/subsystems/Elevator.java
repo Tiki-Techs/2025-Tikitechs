@@ -29,7 +29,7 @@ public class Elevator extends SubsystemBase {
     DigitalInput upperLimitSwitch = new DigitalInput(2);
     public double elevatorCanDown;
     public double elevatorCanUp;
-    public PIDController pid = new PIDController(0.07, 0, 0);
+    public PIDController pid = new PIDController(0.09, 0, 0);
     // public DutyCycleEncoder degEncoder = new DutyCycleEncoder(0); // Never
     // actually used. Elevator is ran off motor encoder values, assuming the
     // elevator
@@ -47,19 +47,22 @@ public class Elevator extends SubsystemBase {
     public double up;
     public double elevGroundIntakeLowerLimit = 18.9754; // change later
     // public double elevarmground = 30.5634;
-    public double elevHandoffPosition = 30.2;
+    public static double changeHandoff = 0.1;
+    public double elevHandoffPosition = 30.65+changeHandoff;
+    // public double changeHandoff = 0;
     public static double gearRatio = 37.8;
     public static double gearCoeff = (1.756 * Math.PI * 2) / gearRatio;
     public boolean testHandoff = false;
     public boolean testDrop = false;
     public double l4Score = 49.33;
+    public DutyCycleEncoder elevatorEncoder = new DutyCycleEncoder(0);
 
-    public double aSDHUAWDUJHAOSDJUHWODIntakeLevel = 34.60164; // change later, an arbitrary value to get ground intake
+    public double aSDHUAWDUJHAOSDJUHWODIntakeLevel = 36.60164; // change later, an arbitrary value to get ground intake
                                                                // to stow faster... change to use either lowerlimit or
                                                                // position, plus x inches
 
     public double tol = 0.19684;
-    public double tol2 = 0.19684;
+    public double tol2 = 0.5384;
     public double speed;
 
     public Elevator() {
@@ -109,15 +112,10 @@ public class Elevator extends SubsystemBase {
     @Override
     public void periodic() {
         elevatorPosition = antiTransform(getRotation());
-        // SmartDashboard.putNumber("safety elev", encoderValue);
-        // If upper limit switch is not hit, canDown is 1. If lower is not hit, canUp is
-        // 1.
-        // SmartDashboard.putNumber("elevator value",
-        // m_elevInterpolator.value(Math.abs(RobotContainer.m_arm.realEncoderValue)));
         if ((!lowerLimitSwitch.get())) { // ZERO ENCODERS AND WHATNOT, NEED TO ACCOUNT FOR ENCODER OFFSET THINGY IN
                                          // OTHER PARTS OF THE CODE
             elevatorCanDown = 0;
-            // m_Leader.setPosition(0); // CONSIDER SLIGHTLY HIGHER THAN ZERO (THE VALUE AS
+            elevatorLeader.setPosition(0); // CONSIDER SLIGHTLY HIGHER THAN ZERO (THE VALUE AS
             // SOON AS WE TOUCH THE SWITCH)
             // setpoint = m_Leader.getPosition().getValueAsDouble();
         } else {
@@ -157,14 +155,15 @@ public class Elevator extends SubsystemBase {
                 speed *= elevatorCanDown;
             }
             // Sets speed.
-            elevatorLeader.set(speed);
+            MathUtil.clamp(speed, -1, 1);
+            elevatorLeader.set(speed*0.6);
         }
         // else if (Controller.manual) {
         else {
             if (leftY > 0) {
-                elevatorLeader.set(leftY * elevatorCanUp);
+                elevatorLeader.set(leftY * elevatorCanUp * 0.6);
             } else {
-                elevatorLeader.set(leftY * elevatorCanDown);
+                elevatorLeader.set(leftY * elevatorCanDown * 0.6);
             }
             elevatorSetpoint = elevatorPosition;
             tryRumble = false;
@@ -184,8 +183,8 @@ public class Elevator extends SubsystemBase {
             testDrop = false;
         }
 
-        if (MathUtil.applyDeadband(elevatorPosition - elevHandoffPosition + 5.5, tol) == 0
-                && (MathUtil.applyDeadband(elevatorSetpoint - elevHandoffPosition + 5.5, tol) == 0)) {
+        if (MathUtil.applyDeadband(elevatorPosition - elevHandoffPosition + 5.5, tol2) == 0
+                && (MathUtil.applyDeadband(elevatorSetpoint - elevHandoffPosition + 5.5, tol2) == 0)) {
             testHandoff = true;
         } else {
             testHandoff = false;

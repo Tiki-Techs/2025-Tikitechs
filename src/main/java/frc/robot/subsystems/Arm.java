@@ -44,10 +44,10 @@ public class Arm extends SubsystemBase {
     public double canLeft = 0;
     public double isCCW = -456787;
     public double speed = 0;
-    public double armTolerance = 2;
+    public double armTolerance = 4;
     public double l4Score = -37;
 
-    public double modS = 1;
+    public double modS = 0.75;
     // public double algaeLow;
     // public double algaeHigh;
     public boolean positiveUp;
@@ -55,6 +55,7 @@ public class Arm extends SubsystemBase {
     public static boolean armThere;
     public boolean testHandoff = false;
     public boolean testDrop = false;
+    public static double armChange = 0;
 
     // CLASS CONSTRUCTOR, CALLED ON INITIALIZATION OF CLASS (DEPLOYMENT OF CODE IF
     // CLASS IS CREATED IN ROBOT CONTAINER).
@@ -120,8 +121,6 @@ public class Arm extends SubsystemBase {
         // TRANSFORMS THROUGHBORE VALUE FOR PID USAGE. TOP MIDDLE BECOMES 0, LEFT MIDDLE
         // BECOMES 90, RIGHT MIDDLE
         // BECOMES 90, BOTTOM MIDDLE BECOMES 180/-180.
-        // SmartDashboard.putNumber("through", degEncoder.get());
-        // throughboreValue = degEncoder.get();
 
         // transform makes the throughbore give 180 to -180 instead of 0 to 360. think
         // this has to do with arm wrapping logic, not really necessary now (could just
@@ -155,16 +154,6 @@ public class Arm extends SubsystemBase {
 
         // canRight = 1;
 
-        // if (((isCCW == 1) && ((MathUtil.applyDeadband(armPosition+165, 15) == 0)) ||
-        // (armPositionTransformed > 0 && armPositionTransformed < 90)
-        // || (((armPosition >
-        // m_armInterpolatorBumper.value(Math.abs(RobotContainer.m_elevator.elevatorPosition)))
-        // && RobotContainer.m_groundintake.clearArmOutside) || (armPosition >
-        // m_armInterpolatorGI.value(Math.abs(RobotContainer.m_elevator.elevatorPosition)))
-        // && !RobotContainer.m_groundintake.clearArmOutside)
-        // )) {
-        // canRight = 0;
-        // }
 
         if ((isCCW == 1) && ((MathUtil.applyDeadband(armPosition + 165, 15) == 0))) {
             canRight = 0;
@@ -172,28 +161,14 @@ public class Arm extends SubsystemBase {
             canRight = 0;
         } else if (((armPosition > m_armInterpolatorBumper.value(Math.abs(RobotContainer.m_elevator.elevatorPosition)))
                 && RobotContainer.m_groundintake.clearArmOutside)) {
-            armPseudoSetpoint = m_armInterpolatorBumper.value(Math.abs(RobotContainer.m_elevator.elevatorPosition));
+            armPseudoSetpoint = -m_armInterpolatorBumper.value(Math.abs(RobotContainer.m_elevator.elevatorPosition));
         } else if (((armPosition > m_armInterpolatorGI.value(Math.abs(RobotContainer.m_elevator.elevatorPosition)))
                 && !RobotContainer.m_groundintake.clearArmOutside)) {
-            armPseudoSetpoint = m_armInterpolatorGI.value(Math.abs(RobotContainer.m_elevator.elevatorPosition));
+            armPseudoSetpoint = -m_armInterpolatorGI.value(Math.abs(RobotContainer.m_elevator.elevatorPosition));
         } else {
             canRight = 1;
         }
 
-        // same as above
-
-        // canLeft = 1;
-
-        // if ((((isCCW == -1) && (((MathUtil.applyDeadband(armPosition-165, 15) ==
-        // 0))))
-        // || (((armPosition <
-        // -m_armInterpolatorBumper.value(Math.abs(RobotContainer.m_elevator.elevatorPosition)))
-        // && RobotContainer.m_groundintake.clearArmOutside) || (armPosition <
-        // -m_armInterpolatorGI.value(Math.abs(RobotContainer.m_elevator.elevatorPosition)))
-        // && !RobotContainer.m_groundintake.clearArmOutside)
-        // )) {
-        // canLeft = 0;
-        // }
 
         if ((((isCCW == -1) && (((MathUtil.applyDeadband(armPosition - 165, 15) == 0))))
                 || (((armPosition < -m_armInterpolatorBumper
@@ -207,11 +182,12 @@ public class Arm extends SubsystemBase {
                 && RobotContainer.m_groundintake.clearArmOutside)) {
             armPseudoSetpoint = -m_armInterpolatorBumper.value(Math.abs(RobotContainer.m_elevator.elevatorPosition));
         } else if ((armPosition < -m_armInterpolatorGI.value(Math.abs(RobotContainer.m_elevator.elevatorPosition)))
-                && !RobotContainer.m_groundintake.clearArmOutside) {
+                && !RobotContainer.m_groundintake.clearArmOutside && !armThere) {
             armPseudoSetpoint = -m_armInterpolatorGI.value(Math.abs(RobotContainer.m_elevator.elevatorPosition));
         } else {
             canLeft = 1;
         }
+        SmartDashboard.putBoolean("armthere", armThere);
 
         // if the arm is within 7 degrees of an "unsafe" value as determined by the
         // controller's interpolator, speed is decreased to 6 % from 50%. This decreases
@@ -243,6 +219,7 @@ public class Arm extends SubsystemBase {
 
         // if not using right joystick, use pid control with setpoints
         if (rightX == 0) {
+            modS = 0.75;
             // LOGIC PREVENTING TWISTING OF WIRES.
             if (isCCW == 1) {
                 armPositionTransformed = Math.abs(armPosition);
@@ -250,9 +227,9 @@ public class Arm extends SubsystemBase {
                 armPositionTransformed = -Math.abs(armPosition);
             }
             // SmartDashboard.putString("test", "PID");
-            if (armPseudoSetpoint == -500000) {
+            if (armPseudoSetpoint == -500000 || armThere) {
                 speed = pid.calculate(armPositionTransformed, armSetpoint);
-            } else {
+            } else{
                 speed = pid.calculate(armPositionTransformed, armPseudoSetpoint);
             }
             // LOGIC THAT SHOULD NOT NEED TO BE USED.
@@ -263,9 +240,6 @@ public class Arm extends SubsystemBase {
                 speed *= canLeft;
                 // m_Leader.set(rightX*canRight*(-isLeft));
             }
-            // Sets speed.
-            // m_Leader.set(speed);
-            // SmartDashboard.putString("Control", "Not Manual");
         }
 
         // if manually controlling, set a speed based on the controller input.
@@ -289,7 +263,7 @@ public class Arm extends SubsystemBase {
                 armSetpoint = armPositionTransformed;
             }
 
-            pid.reset(armPosition);
+            pid.reset(armPositionTransformed);
             // else {
             // if (rightX > 0) {
             // speed = rightX*canRight*1; // cw and joystick left
@@ -305,11 +279,6 @@ public class Arm extends SubsystemBase {
             // else {
             // speed = rightX*canCCW*1;
             // }
-
-            // SETS SETPOINT TO CURRENT VALUE SO THAT, WHEN RIGHT STICK IS RELEASED, PID
-            // WILL NOT MAKE ARM RETURN TO LAST SETPOINT POSITION.
-            // desiredEncoderValue = realEncoderValue2;
-            // SmartDashboard.putString("Control", "Manual");
         }
 
         // prevents speed from passing 1 so modification can function
@@ -346,13 +315,6 @@ public class Arm extends SubsystemBase {
         } else {
             testHandoff = false;
         }
-        // SmartDashboard.putBoolean("there arm", there);
-        // if (tryRumble && there){
-        // readyRumble = true;
-        // }
-        // else {
-        // readyRumble = false;
-        // }
 
         SmartDashboard.putNumber("(Arm) True encoder value", armPosition);
         SmartDashboard.putNumber("(Arm) True encoder value2", armPositionTransformed);
@@ -362,17 +324,5 @@ public class Arm extends SubsystemBase {
         SmartDashboard.putNumber("Left", isCCW);
         SmartDashboard.putNumber("Can Left", canLeft);
         SmartDashboard.putNumber("Can Right", canRight);
-        // double temp = m_armInterpolator.value(0);
-
-        // double temp2 = m_armInterpolator.value(2);
-
-        // double temp3 = m_armInterpolator.value(3);
-
-        // double temp4 = m_armInterpolator.value(4);
-
-        // SmartDashboard.putNumber("test", temp);
-        // SmartDashboard.putNumber("test2", temp2);
-        // SmartDashboard.putNumber("test3", temp3);
-        // SmartDashboard.putNumber("test4", temp4);
     }
 }

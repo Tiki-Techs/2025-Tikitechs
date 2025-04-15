@@ -87,12 +87,13 @@ public class RobotContainer {
 
   private final String centerLeave = "Center Leave";
   private final String centerReef = "Center Reef";
+  private final String centerRam = "Center Ram";
   // private final String centerL1 = "Source Side Auto";
   private final String rightLeave = "Right Leave";
   private final String rightReef = "Right Reef";
   private final String rightL1 = "Right L1";
   private final String leftLeave = "Left Leave";
-  // private final String leftReef = "";
+  private final String leftReef = "Left Reef";
   private final String leftL1 = "Left L1";
   private final String l4test = "L4 Test";
  /** The container for the robot. Contains subsystems, OI devices, and commands. */
@@ -105,17 +106,21 @@ public class RobotContainer {
     // NamedCommands.registerCommand("Off", m_groundintake.autoSpitOff());   
     NamedCommands.registerCommand("L4 Setpoint", m_controller.setpoint(-25, 49.33));
     
-    NamedCommands.registerCommand("L4 Setpoint Drop", m_controller.setpointDrop(-37, 49.33));
+    NamedCommands.registerCommand("Manipulator Output", m_manipulator.spit());
+    
+    NamedCommands.registerCommand("L4 Setpoint Drop", m_controller.setpoint(-120, 49.33));
 
 
     autoChooser = new SendableChooser<Command>();
     autoChooser.setDefaultOption("Center Leave", AutoBuilder.buildAuto(centerLeave));
     autoChooser.addOption("Center Reef", AutoBuilder.buildAuto(centerReef));
+    autoChooser.addOption("Center Ram", AutoBuilder.buildAuto(centerRam));
     autoChooser.addOption("Right Leave", AutoBuilder.buildAuto(rightLeave));
     autoChooser.addOption("Right Reef", AutoBuilder.buildAuto(rightReef));
     autoChooser.addOption("Right L1", AutoBuilder.buildAuto(rightL1));
     autoChooser.addOption("Left Leave", AutoBuilder.buildAuto(leftLeave));
     autoChooser.addOption("Left L1", AutoBuilder.buildAuto(leftL1));
+    autoChooser.addOption("Left Reef", AutoBuilder.buildAuto(leftReef));
     autoChooser.addOption("L4 Test", AutoBuilder.buildAuto(l4test));
 
 
@@ -135,21 +140,6 @@ public class RobotContainer {
         () -> MathUtil.applyDeadband(-m_driverController.getLeftY(), ControllerConstants.LEFT_Y_DEADBAND),
         () -> MathUtil.applyDeadband(-m_driverController.getLeftX(), ControllerConstants.LEFT_X_DEADBAND),
         () -> MathUtil.applyDeadband(-m_driverController.getRightX(), ControllerConstants.RIGHT_X_DEADBAND));
-
-    Command driveFieldOrientedAnglularVelocityScaledDown = drivebase.driveCommandF(
-        () -> MathUtil.applyDeadband(-m_driverController.getLeftY(), ControllerConstants.LEFT_Y_DEADBAND),
-        () -> MathUtil.applyDeadband(-m_driverController.getLeftX(), ControllerConstants.LEFT_X_DEADBAND),
-        () -> MathUtil.applyDeadband(-m_driverController.getRightX(), ControllerConstants.RIGHT_X_DEADBAND));
-
-    public Command scaledToggle() {
-      scaledToggle = !scaledToggle;
-      if (scaledToggle) {
-        return driveFieldOrientedAnglularVelocityScaledDown;
-      }
-      else {
-        return driveFieldOrientedAnglularVelocity;
-      }
-    }
         
     Command robotOrientedAngularVelocity = drivebase.driveCommandR(
       () -> MathUtil.applyDeadband(-m_driverController.getLeftY(), ControllerConstants.LEFT_Y_DEADBAND),

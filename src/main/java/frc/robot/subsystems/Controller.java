@@ -34,13 +34,13 @@ public class Controller extends SubsystemBase {
     // public static double[] armSafety2 = {0, 86, 91.6, 95.1, 100.4, 104, 107.8,
     // 113.4, 119.7, 125.4, 129.27, 129.3, 137.3, 139.8, 144, 180};
 
-    public static double[] elevSafetyGI = { 0, 12.616284, 16.2061, 18.22276, 20.196964, 23.593444, 26.374312, 28.62448,
-            29.413248, 29.5964, 30.23324, 31.20537228, 1000.9472 };
+    public static double[] elevSafetyGI = { 0, 12.616284+Arm.armChange, 16.2061+Arm.armChange, 18.22276+Arm.armChange, 20.196964+Arm.armChange, 23.593444+Arm.armChange, 26.374312+Arm.armChange, 28.62448+Arm.armChange,
+            29.413248+Arm.armChange, 29.5964+Arm.armChange, 30.23324+Arm.armChange, 31.20537228+Arm.armChange, 1000.9472+Arm.armChange };
     public static double[] armSafetyGI = { 91.0, 91.001, 99.3, 104.9, 108.9, 117.2, 122.6, 128.4, 131.4, 137.2, 147.1,
             180, 180.1 };
 
-    public static double[] elevSafetyGI2 = { 0, 0.001, 11.751364, 14.34118, 16.35784, 18.432044, 22.253084, 24.509392,
-            26.75956, 27.948328, 29.73148, 30.36832, 30.36832001 };
+    public static double[] elevSafetyGI2 = { 0, 0.001, 12.001364+Elevator.changeHandoff, 14.59118+Elevator.changeHandoff, 16.60784+Elevator.changeHandoff, 18.682044+Elevator.changeHandoff, 22.503084+Elevator.changeHandoff, 24.759392+Elevator.changeHandoff,
+            27.00956+Elevator.changeHandoff, 28.198328+Elevator.changeHandoff, 29.98148+Elevator.changeHandoff, 30.61832+Elevator.changeHandoff, 30.61832001+Elevator.changeHandoff};
     public static double[] armSafetyGI2 = { 0, 91.0, 91.001, 99.3, 104.9, 108.9, 117.2, 122.6, 128.4, 131.4, 137.2,
             147.1, 180 };
 

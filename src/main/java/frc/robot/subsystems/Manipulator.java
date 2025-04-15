@@ -14,14 +14,14 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ControllerConstants;
 import frc.robot.RobotContainer;
 
 public class Manipulator extends SubsystemBase {
     public static TalonFX manipulatorPower = new TalonFX(13);
-
-    public PIDController pid = new PIDController(0.2, 0, 0);
     public DigitalInput limitSwitch = new DigitalInput(4);
     public double motorValue;
     public static boolean have = false;
@@ -37,6 +37,12 @@ public class Manipulator extends SubsystemBase {
 
     public void setSpeed(double speed) {
         manipulatorPower.set(speed);
+    }
+
+    public Command spit () {
+        return new InstantCommand(
+            () -> setSpeed(0.6), this
+        ).withTimeout(.5);
     }
 
     @Override

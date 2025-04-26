@@ -7,7 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Right Reef"
+            "pathName": "Copy of Left Reef"
           }
         },
         {
@@ -37,7 +37,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Right Turn"
+            "pathName": "Left Turn"
           }
         }
       ]

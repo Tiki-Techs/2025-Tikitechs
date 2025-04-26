@@ -11,6 +11,8 @@ import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -19,50 +21,135 @@ import frc.robot.Constants.ControllerConstants;
 import frc.robot.Robot;
 import frc.robot.RobotContainer;
 
-// 12.5 c, 
+// 137.8125
 
 public class Elevator extends SubsystemBase {
+    /**
+     * 
+     */
     public TalonFX elevatorLeader = new TalonFX(10);
+    /**
+     * 
+     */
     public TalonFX elevatorFollower = new TalonFX(9);
+    /**
+     * 
+     */
     public Follower follower = new Follower(10, false);
+    /**
+     * 
+     */
     DigitalInput lowerLimitSwitch = new DigitalInput(3);
+    /**
+     * 
+     */
     DigitalInput upperLimitSwitch = new DigitalInput(2);
+    /**
+     * 
+     */
     public double elevatorCanDown;
+    /**
+     * 
+     */
     public double elevatorCanUp;
-    public PIDController pid = new PIDController(0.09, 0, 0);
-    // public DutyCycleEncoder degEncoder = new DutyCycleEncoder(0); // Never
-    // actually used. Elevator is ran off motor encoder values, assuming the
-    // elevator
-    // is at the very bottom when powered on.
+    /**
+     * 
+     */
+    public ProfiledPIDController pid = new ProfiledPIDController(0.4, 0, 0, 
+    /**
+     * 
+     */
+    new TrapezoidProfile.Constraints(50, 375));
+    /**
+     * 
+     */
     private final LinearInterpolator interpolator = new LinearInterpolator();
+    /**
+     * 
+     */
     private PolynomialSplineFunction m_elevInterpolatorGI;
+    /**
+     * 
+     */
     private PolynomialSplineFunction m_elevInterpolatorBumper;
 
+    /**
+     * 
+     */
     public double elevatorPosition;
+    /**
+     * 
+     */
     public double elevatorSetpoint;
-    public boolean tryRumble;
-    public boolean readyRumble;
+    /**
+     * 
+     */
     public static double elevHandoffLowerLimit = 29.7192;
+    /**
+     * 
+     */
     public static boolean there = false;
+    /**
+     * 
+     */
     public double up;
+    /**
+     * 
+     */
     public double elevGroundIntakeLowerLimit = 18.9754; // change later
     // public double elevarmground = 30.5634;
+    /**
+     * 
+     */
     public static double changeHandoff = 0.1;
+    /**
+     * 
+     */
     public double elevHandoffPosition = 30.65+changeHandoff;
     // public double changeHandoff = 0;
+    /**
+     * 
+     */
     public static double gearRatio = 37.8;
+    /**
+     * 
+     */
     public static double gearCoeff = (1.756 * Math.PI * 2) / gearRatio;
+    /**
+     * 
+     */
     public boolean testHandoff = false;
+    /**
+     * 
+     */
     public boolean testDrop = false;
+    /**
+     * 
+     */
     public double l4Score = 49.33;
+    /**
+     * 
+     */
     public DutyCycleEncoder elevatorEncoder = new DutyCycleEncoder(0);
 
+    /**
+     * 
+     */
     public double aSDHUAWDUJHAOSDJUHWODIntakeLevel = 36.60164; // change later, an arbitrary value to get ground intake
                                                                // to stow faster... change to use either lowerlimit or
                                                                // position, plus x inches
 
+    /**
+     * 
+     */
     public double tol = 0.19684;
+    /**
+     * 
+     */
     public double tol2 = 0.5384;
+    /**
+     * 
+     */
     public double speed;
 
     public Elevator() {
@@ -77,32 +164,30 @@ public class Elevator extends SubsystemBase {
         m_elevInterpolatorBumper = interpolator.interpolate(armBumper, elevBumper);
     }
 
+    /**
+     * Returns the motor's relative encoder value.
+     */
     public double getRotation() {
         return elevatorLeader.getPosition().getValueAsDouble();
     }
 
-    public void kill() {
-        elevatorLeader.set(0);
-    }
-
+    /**
+     * Changes the elevator's setpoint.
+     */
     public void setpoint(double setpoint) {
         this.elevatorSetpoint = setpoint;
     }
 
-    public void setpointDrop(double setpoint) {
-        this.elevatorSetpoint = setpoint;
-    }
-
-    public void tryRumble(boolean rumble) {
-        this.tryRumble = rumble;
-    }
-
-    // Transforms setpoint into motor turns.
+    /**
+     * Transforms setpoint (inches) into motor turns. Not really used. Could be used for initial PID values?
+     */
     public double transform(double val) {
         return (val) / gearCoeff;
     }
 
-    // Transforms motor turns into setpoint.
+    /**
+     * Transforms motor turns into setpoint (inches).
+     */
     public double antiTransform(double val) {
         return (val * gearCoeff);
     }
@@ -121,6 +206,7 @@ public class Elevator extends SubsystemBase {
         } else {
             elevatorCanDown = 1;
         }
+
         if ((!upperLimitSwitch.get())) {
             elevatorCanUp = 0;
             // m_Leader.setPosition(transform(48.61212)); // CHECK VALUE........
@@ -138,10 +224,14 @@ public class Elevator extends SubsystemBase {
         // SmartDashboard.putNumber("elevtest1",
         // m_elevInterpolator.value(Math.abs(RobotContainer.m_arm.realEncoderValue)));
 
-        if (((!RobotContainer.m_groundintake.clearArmOutside) &&
+        if (((RobotContainer.m_groundintake.clearArmOutside) &&
                 (elevatorPosition < m_elevInterpolatorBumper.value(Math.abs(RobotContainer.m_arm.armPosition))))
                 || ((!RobotContainer.m_groundintake.clearArmOutside) &&
                         (elevatorPosition < m_elevInterpolatorGI.value(Math.abs(RobotContainer.m_arm.armPosition))))) {
+            elevatorCanDown = 0;
+        }
+
+        if (RobotContainer.m_controller.climb && elevatorPosition < 29.4 && RobotContainer.m_arm.climbArm) {
             elevatorCanDown = 0;
         }
 
@@ -161,12 +251,12 @@ public class Elevator extends SubsystemBase {
         // else if (Controller.manual) {
         else {
             if (leftY > 0) {
-                elevatorLeader.set(leftY * elevatorCanUp * 0.6);
+                elevatorLeader.set(leftY * elevatorCanUp * 1);
             } else {
-                elevatorLeader.set(leftY * elevatorCanDown * 0.6);
+                elevatorLeader.set(leftY * elevatorCanDown * 1);
             }
             elevatorSetpoint = elevatorPosition;
-            tryRumble = false;
+            pid.reset(elevatorPosition);
         }
 
         if ((MathUtil.applyDeadband(elevatorPosition - elevHandoffPosition, tol) == 0)
@@ -188,13 +278,6 @@ public class Elevator extends SubsystemBase {
             testHandoff = true;
         } else {
             testHandoff = false;
-        }
-
-        // Rumble logic.
-        if (tryRumble && there) {
-            readyRumble = true;
-        } else {
-            readyRumble = false;
         }
 
         SmartDashboard.putNumber("(Elevator) CanUp", elevatorCanUp);

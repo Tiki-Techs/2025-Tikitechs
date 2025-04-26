@@ -7,25 +7,43 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Center L4"
+            "pathName": "Left Reef"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "L4 Setpoint"
+            "name": "A1"
           }
         },
         {
           "type": "wait",
           "data": {
-            "waitTime": 3.0
+            "waitTime": 0.5
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "L4 Setpoint Drop"
+            "name": "A2"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "LL1 Left Leave and Turn"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Reef Low"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.65
           }
         }
       ]

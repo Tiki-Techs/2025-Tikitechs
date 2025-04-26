@@ -7,7 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Right Reef"
+            "pathName": "Center Ram"
           }
         },
         {
@@ -37,7 +37,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Right Turn"
+            "pathName": "Center Turn"
           }
         }
       ]

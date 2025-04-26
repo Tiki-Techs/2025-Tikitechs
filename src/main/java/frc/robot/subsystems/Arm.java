@@ -19,42 +19,123 @@ import frc.robot.RobotContainer;
 public class Arm extends SubsystemBase {
 
     // ACTUAL CLASSES
+    /**
+     * 
+     */
     public TalonFX armLeader = new TalonFX(12); // FIGURE OUT MOTION MAGIC, SWITCH TO SHUFFLEBOARD(?)
+    /**
+     * 
+     */
     public TalonFX armFollower = new TalonFX(11);
+    /**
+     * 
+     */
     public Follower follower = new Follower(12, false);
+    /**
+     * 
+     */
     public ProfiledPIDController pid = new ProfiledPIDController(0.030, 0, 0.000,
             new TrapezoidProfile.Constraints(130, 560)); // TUNE PID, went from 14 to 20 just now
+            //
     // public PIDController pid = new PIDController(0.020, 0, 0.0000); // TUNE PID,
     // went from 14 to 20 just now
+    /**
+     * 
+     */
     public DutyCycleEncoder degEncoder = new DutyCycleEncoder(1, 360, 325.7);
     // public DutyCycleEncoder degEncoder = new DutyCycleEncoder(1);
+    /**
+     * 
+     */
     private final LinearInterpolator interpolator = new LinearInterpolator();
+    /**
+     * 
+     */
     private PolynomialSplineFunction m_armInterpolatorGI;
+    /**
+     * 
+     */
     private PolynomialSplineFunction m_armInterpolatorBumper;
 
     // LOGIC VARIABLES
+    /**
+     * 
+     */
     public double armPosition = 12;
     // public double throughboreValue;
+    /**
+     * 
+     */
     public double armPositionTransformed;
+    /**
+     * 
+     */
     public double armSetpoint;
+    /**
+     * 
+     */
     public double armPseudoSetpoint;
-    public boolean tryRumble = false;
-    public boolean readyRumble = false;
+    /**
+     * 
+     */
     public double canRight = 0;
+    /**
+     * 
+     */
     public double canLeft = 0;
+    /**
+     * 
+     */
     public double isCCW = -456787;
+    /**
+     * 
+     */
     public double speed = 0;
+    /**
+     * 
+     */
     public double armTolerance = 4;
+    /**
+     * 
+     */
     public double l4Score = -37;
-
+    /**
+     * 
+     */
+    public boolean climbArm = false;
+/**
+     * 
+     */
+    
+    /**
+     * 
+     */
     public double modS = 0.75;
     // public double algaeLow;
     // public double algaeHigh;
+    /**
+     * 
+     */
     public boolean positiveUp;
+    /**
+     * 
+     */
     public double down;
+    /**
+     * 
+     */
     public static boolean armThere;
+    /**
+     * 
+     */
     public boolean testHandoff = false;
+    /**
+     * 
+     */
     public boolean testDrop = false;
+    /**
+     * 
+     */
     public static double armChange = 0;
 
     // CLASS CONSTRUCTOR, CALLED ON INITIALIZATION OF CLASS (DEPLOYMENT OF CODE IF
@@ -77,34 +158,26 @@ public class Arm extends SubsystemBase {
         m_armInterpolatorBumper = interpolator.interpolate(elevBumper, armBumper);
     }
 
-    public double down() {
-        return down;
-    }
-
-    public void kill() {
-        armLeader.set(0);
-    }
-    // public boolean there () {
-
-    // }
-
     // SETTER TO CHANGE SETPOINT FROM OTHER CLASSES.
+    /**
+     * 
+     */
     public void setpoint(double setpoint) {
         this.armSetpoint = setpoint;
     }
 
+    /**
+     * 
+     */
     public void setpointDrop(double setpoint) {
         this.armSetpoint = setpoint;
     }
 
-    // LOGIC FOR WHETHER OR NOT THE CONTROLLER IS MEANT TO RUMBLE. SEE ARM PERIODIC,
-    // CONTROLLER PERIODIC, AND OTHER REFERENCES.
-    public void tryRumble(boolean rumble) {
-        this.tryRumble = rumble;
-    }
-
     // TRANSFORMS THROUGHBORE ENCODER VALUE INTO SOMETHING EASILY USED WITH PID
     // CONTROL.
+    /**
+     * 
+     */
     public double transform(double encoder) {
         double ret;
         if (encoder > 180) {
@@ -157,15 +230,17 @@ public class Arm extends SubsystemBase {
 
         if ((isCCW == 1) && ((MathUtil.applyDeadband(armPosition + 165, 15) == 0))) {
             canRight = 0;
-        } else if (armPositionTransformed > 0 && armPositionTransformed < 90) {
+        } else if (armPositionTransformed > 20 && armPositionTransformed < 90) {
             canRight = 0;
-        } else if (((armPosition > m_armInterpolatorBumper.value(Math.abs(RobotContainer.m_elevator.elevatorPosition)))
-                && RobotContainer.m_groundintake.clearArmOutside)) {
-            armPseudoSetpoint = -m_armInterpolatorBumper.value(Math.abs(RobotContainer.m_elevator.elevatorPosition));
-        } else if (((armPosition > m_armInterpolatorGI.value(Math.abs(RobotContainer.m_elevator.elevatorPosition)))
-                && !RobotContainer.m_groundintake.clearArmOutside)) {
-            armPseudoSetpoint = -m_armInterpolatorGI.value(Math.abs(RobotContainer.m_elevator.elevatorPosition));
-        } else {
+        } 
+        // else if (((armPosition > m_armInterpolatorBumper.value(Math.abs(RobotContainer.m_elevator.elevatorPosition)))
+        //         && RobotContainer.m_groundintake.clearArmOutside)) {
+        //     armPseudoSetpoint = -m_armInterpolatorBumper.value(Math.abs(RobotContainer.m_elevator.elevatorPosition));
+        // } else if (((armPosition > m_armInterpolatorGI.value(Math.abs(RobotContainer.m_elevator.elevatorPosition)))
+        //         && !RobotContainer.m_groundintake.clearArmOutside)) {
+        //     armPseudoSetpoint = -m_armInterpolatorGI.value(Math.abs(RobotContainer.m_elevator.elevatorPosition));
+        // }
+        else {
             canRight = 1;
         }
 
@@ -178,16 +253,24 @@ public class Arm extends SubsystemBase {
                                 .value(Math.abs(RobotContainer.m_elevator.elevatorPosition)))
                                 && !RobotContainer.m_groundintake.clearArmOutside))) {
             canLeft = 0;
-        } else if (((armPosition < -m_armInterpolatorBumper.value(Math.abs(RobotContainer.m_elevator.elevatorPosition)))
-                && RobotContainer.m_groundintake.clearArmOutside)) {
-            armPseudoSetpoint = -m_armInterpolatorBumper.value(Math.abs(RobotContainer.m_elevator.elevatorPosition));
-        } else if ((armPosition < -m_armInterpolatorGI.value(Math.abs(RobotContainer.m_elevator.elevatorPosition)))
-                && !RobotContainer.m_groundintake.clearArmOutside && !armThere) {
-            armPseudoSetpoint = -m_armInterpolatorGI.value(Math.abs(RobotContainer.m_elevator.elevatorPosition));
-        } else {
+            }
+        else if (MathUtil.applyDeadband(armPositionTransformed + 135, 15) == 0 && !RobotContainer.m_controller.climb) {
+            canLeft = 0;
+        } 
+        // CHECK
+        // else if (((armPosition < -m_armInterpolatorBumper.value(Math.abs(RobotContainer.m_elevator.elevatorPosition)))
+        //         && RobotContainer.m_groundintake.clearArmOutside)) {
+        //     armPseudoSetpoint = -m_armInterpolatorBumper.value(Math.abs(RobotContainer.m_elevator.elevatorPosition));
+        // } 
+
+        // else if ((armPosition < -m_armInterpolatorGI.value(Math.abs(RobotContainer.m_elevator.elevatorPosition)))
+        //         && !RobotContainer.m_groundintake.clearArmOutside && !armThere) {
+        //     armPseudoSetpoint = -m_armInterpolatorGI.value(Math.abs(RobotContainer.m_elevator.elevatorPosition));
+        // }
+         else {
             canLeft = 1;
         }
-        SmartDashboard.putBoolean("armthere", armThere);
+        // SmartDashboard.putBoolean("armthere", armThere);
 
         // if the arm is within 7 degrees of an "unsafe" value as determined by the
         // controller's interpolator, speed is decreased to 6 % from 50%. This decreases
@@ -206,9 +289,7 @@ public class Arm extends SubsystemBase {
         // modS = 0.5;
         // }
 
-        SmartDashboard.putNumber("mods", modS);
-
-        double rightX = -MathUtil.applyDeadband(RobotContainer.m_mechController.getRightY(), 0.15);
+        // SmartDashboard.putNumber("mods", modS);
 
         // weird stuff about arm wrapping i forget
         if (isCCW == 1) {
@@ -216,6 +297,8 @@ public class Arm extends SubsystemBase {
         } else {
             armPositionTransformed = -Math.abs(armPosition);
         }
+
+        double rightX = -MathUtil.applyDeadband(RobotContainer.m_mechController.getRightY(), 0.15);
 
         // if not using right joystick, use pid control with setpoints
         if (rightX == 0) {
@@ -244,8 +327,7 @@ public class Arm extends SubsystemBase {
 
         // if manually controlling, set a speed based on the controller input.
         else {
-            // SHOULD NOT RUMBLE WHEN AT SETPOINT (SEE BELOW, SEE CONTROLLER PERIODIC)
-            tryRumble = false;
+            // TRYRUMBLE DOES NOTHING.
             modS = 0.5;
 
             // SmartDashboard.putString("test", "not PID");
@@ -293,15 +375,17 @@ public class Arm extends SubsystemBase {
             armLeader.set(speed * modS);
         }
 
-        // IF MEANT TO RUMBLE, WILL CHECK WHETHER OR NOT THE POSITION IS WITHIN A
-        // CERTAIN RANGE OF THE DESIRED POSITION.
-        // IF SO, WILL SET READY RUMBLE TO TRUE. SEE CONTROLLER PERIODIC.
-
         // checks if the arm is in the correct state for handoff, for both(?)
         if (MathUtil.applyDeadband(armPositionTransformed + 180, armTolerance) == 0) {
             armThere = true;
         } else {
             armThere = false;
+        }
+
+        if (MathUtil.applyDeadband(armPositionTransformed + 180, 60) == 0) {
+            climbArm = true;
+        } else {
+            climbArm = false;
         }
 
         if (MathUtil.applyDeadband(armPositionTransformed - l4Score, armTolerance) == 0) {
@@ -317,9 +401,7 @@ public class Arm extends SubsystemBase {
         }
 
         SmartDashboard.putNumber("(Arm) True encoder value", armPosition);
-        SmartDashboard.putNumber("(Arm) True encoder value2", armPositionTransformed);
-        SmartDashboard.putNumber("down ARM val", down);
-        SmartDashboard.putNumber("(Arm) True setpoint elev", armSetpoint);
+        SmartDashboard.putNumber("(Arm) True setpoint", armSetpoint);
         SmartDashboard.putNumber("(Arm) Pseudo setpoint value", armPseudoSetpoint);
         SmartDashboard.putNumber("Left", isCCW);
         SmartDashboard.putNumber("Can Left", canLeft);

@@ -7,13 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Right L4"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "L4 Setpoint"
+            "pathName": "BL1"
           }
         }
       ]

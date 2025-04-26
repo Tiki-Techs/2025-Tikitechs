@@ -7,13 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Right Reef"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 2.0
+            "pathName": "CL1 Net L1"
           }
         },
         {
@@ -25,7 +19,7 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 1.0
+            "waitTime": 0.4
           }
         },
         {
@@ -37,7 +31,25 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Right Turn"
+            "pathName": "CL1 Net Leave and Turn"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Reef Low"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 1.5
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "CL1 Net Reef"
           }
         }
       ]

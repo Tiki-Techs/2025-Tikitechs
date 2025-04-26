@@ -88,6 +88,7 @@ public class SwerveSubsystem extends SubsystemBase {
   double tag = -124912;
   Pose3d robotPose = new Pose3d();
   Pose2d estimatedRobotPose = new Pose2d();
+  public double netMult = 1;
   // Pose3d poseB = new Pose3d();
   StructPublisher<Pose3d> publisher = NetworkTableInstance.getDefault()
       .getStructTopic("MyPose", Pose3d.struct).publish();
@@ -150,7 +151,7 @@ public class SwerveSubsystem extends SubsystemBase {
         },
         // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also
         // optionally outputs individual module feedforwards
-        // new PPHolonomicDriveController( // PPHolonomicController is the built in path
+        // new PPHolonomicDriveController( // PPHolonomicController is1 the built in path
         // following controller for holonomic drive trains
         // new PIDConstants(0.03, 0.0, 0.0), // Translation PID constants
         // new PIDConstants(0.08, 0.0, 0.0) // Rotation PID constants
@@ -177,7 +178,9 @@ public class SwerveSubsystem extends SubsystemBase {
         // check on the thing about warmup in the other code, and check their basic auto
         // selection/init.
         this // Reference to this subsystem to set requirements
+
     );
+    // swerveDrive.setAngularVelocityCompensation(true, true, 0.1);
   }
 
   public SwerveDriveKinematics getKinematics() {
@@ -223,23 +226,23 @@ public class SwerveSubsystem extends SubsystemBase {
     });
   }
 
-  public Command rotateAlign() {
-    return run(() -> {
-      swerveDrive.driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(0, 0,
-          Math.toRadians(-60 * RobotContainer.m_vision.closestTag() + rotAlign),
-          swerveDrive.getOdometryHeading().getRadians(),
-          swerveDrive.getMaximumChassisVelocity()));
-    });
-  }
+  // public Command rotateAlign() {
+  //   return run(() -> {
+  //     swerveDrive.driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(0, 0,
+  //         Math.toRadians(-60 * RobotContainer.m_vision.closestTag() + rotAlign),
+  //         swerveDrive.getOdometryHeading().getRadians(),
+  //         swerveDrive.getMaximumChassisVelocity()));
+  //   });
+  // }
 
-  public Command rotateAlignL1() {
-    return run(() -> {
-      swerveDrive.driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(0, 0,
-          Math.toRadians(-60 * RobotContainer.m_vision.closestTag() + rotAlign + 90),
-          swerveDrive.getOdometryHeading().getRadians(),
-          swerveDrive.getMaximumChassisVelocity()));
-    });
-  }
+  // public Command rotateAlignL1() {
+  //   return run(() -> {
+  //     swerveDrive.driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(0, 0,
+  //         Math.toRadians(-60 * RobotContainer.m_vision.closestTag() + rotAlign + 90),
+  //         swerveDrive.getOdometryHeading().getRadians(),
+  //         swerveDrive.getMaximumChassisVelocity()));
+  //   });
+  // }
 
   // (-60 * side.getAsDouble())-90
 
@@ -266,7 +269,7 @@ public class SwerveSubsystem extends SubsystemBase {
     });
   }
 
-  public Command driveCommandR(DoubleSupplier translationX, DoubleSupplier translationY,
+  public Command driveCommandFSlow(DoubleSupplier translationX, DoubleSupplier translationY,
       DoubleSupplier angularRotationX) {
     return run(() -> {
 
@@ -274,56 +277,13 @@ public class SwerveSubsystem extends SubsystemBase {
           translationY.getAsDouble()), 0.8);
 
       // Make the robot move
-      swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(
+      swerveDrive.driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(
           scaledInputs.getX() * 0.2,
           scaledInputs.getY() * 0.2,
           swerveDrive.getOdometryHeading().getRadians() + angularRotationX.getAsDouble() * 0.45,
           swerveDrive.getOdometryHeading().getRadians(),
           swerveDrive.getMaximumChassisVelocity()));
     });
-  }
-
-  public Command x() {
-    return new InstantCommand(
-        () -> {
-          SmartDashboard.putString("test 111", "getName()");
-          // m_Timer.reset();
-          // m_Timer.start();
-          // while (m_Timer.get() <= 1) {
-          // swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(
-          // 0.07,
-          // 0,
-          // swerveDrive.getOdometryHeading().getRadians(),
-          // swerveDrive.getOdometryHeading().getRadians(),
-          // swerveDrive.getMaximumChassisVelocity()));
-          // }
-        });
-  }
-
-  // public Command x2() {
-  // return new RunCommand(
-  // () -> {
-  // m_Timer.reset();
-  // m_Timer.start();
-  // while (m_Timer.get() <= 0.5) {
-  // swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(
-  // 0,
-  // 0,
-  // swerveDrive.getOdometryHeading().getRadians()-2,
-  // swerveDrive.getOdometryHeading().getRadians(),
-  // swerveDrive.getMaximumChassisVelocity()));
-  // }}
-  // );
-  // }
-
-  public Command x2() {
-    return new RunCommand(
-        () -> swerveDrive.drive(swerveDrive.swerveController.getTargetSpeeds(
-            0,
-            0,
-            swerveDrive.getOdometryHeading().getRadians() - 2,
-            swerveDrive.getOdometryHeading().getRadians(),
-            swerveDrive.getMaximumChassisVelocity())));
   }
 
   public double getOdometryHeading() {
@@ -383,13 +343,6 @@ public class SwerveSubsystem extends SubsystemBase {
     return (int) tag;
   }
 
-  public Command pt1() {
-
-    return new InstantCommand(
-        () -> {
-          SmartDashboard.putNumber("pt1", tag);
-        }, this);
-  }
 
   // Pose at midpoint between tags 18 and 21 (which are opposite on blue reef)
   private static final Translation2d REEF_CENTER_BLUE = fieldLayout.getTagPose(18).get().toPose2d().getTranslation()
@@ -474,6 +427,16 @@ public class SwerveSubsystem extends SubsystemBase {
     } else {
       rotAlign = 0;
     }
+    double swerveDeg = swerveDrive.getOdometryHeading().getDegrees();
+    if ((swerveDeg < -90) || (swerveDeg > 90)) {
+      netMult = 1;
+    }
+    else {
+      netMult = -1;
+    }
+
+    SmartDashboard.putNumber("heading", swerveDrive.getOdometryHeading().getDegrees());
+
     swerveDrive.updateOdometry();
     // robotPose = new Pose3d(
     // RobotContainer.poseEstimator.getPosition().getX(),
